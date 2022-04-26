@@ -274,7 +274,7 @@ void loop()
     }
     
     
-    if((curkey >=10) && (curkey <= 131) &&  (setVramMode == 0) && (setColorMode == 0) && (setColorAdvanceMode == 0) && (setColorAdvanceFullscreenMode == 0) && (setColorAdvanceSigMode == 0) ){
+    if(curkey == 255 || ((curkey >=10) && (curkey <= 131) &&  (setVramMode == 0) && (setColorMode == 0) && (setColorAdvanceMode == 0) && (setColorAdvanceFullscreenMode == 0) && (setColorAdvanceSigMode == 0)) ){
       switch(curkey){
       case 0x80:Ini_PT_TXT();break;
       case 0x81:Ini_PT_BLK( );break;

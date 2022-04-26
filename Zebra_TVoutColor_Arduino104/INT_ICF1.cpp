@@ -19,7 +19,7 @@
 #include "defCSL.h"
 
 PROGMEM const UB CINT::cg_code[ (0x7F +1)*8 ] = { 
-#include "CG_NTSC_20130603.h"
+#include "CG_NTSC_20220426.h"
 };
 
 
