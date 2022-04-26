@@ -1,0 +1,52 @@
+Modules list:
+-------------
+zebra_msbasic.o:
+    CODE              Offs=000000  Size=001CDC  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
+    BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
+    DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
+    ZEROPAGE          Offs=000000  Size=000078  Align=00001  Fill=0000
+    NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
+    HEADER            Offs=000000  Size=000000  Align=00001  Fill=0000
+    VECTORS           Offs=000000  Size=000086  Align=00001  Fill=0000
+    KEYWORDS          Offs=000000  Size=0000E3  Align=00001  Fill=0000
+    DUMMY             Offs=000000  Size=000045  Align=00001  Fill=0000
+    ERROR             Offs=000000  Size=0000F0  Align=00001  Fill=0000
+    CHRGET            Offs=000000  Size=00001D  Align=00001  Fill=0000
+    INIT              Offs=000000  Size=000197  Align=00001  Fill=0000
+    EXTRA             Offs=000000  Size=000225  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+BSS                   000000  000000  000000  00001
+DATA                  000000  000000  000000  00001
+DUMMY                 000000  000044  000045  00001
+NULL                  000000  000000  000000  00001
+RODATA                000000  000000  000000  00001
+ZEROPAGE              000000  000077  000078  00001
+HEADER                00C000  00C000  000000  00001
+VECTORS               00C000  00C085  000086  00001
+KEYWORDS              00C086  00C168  0000E3  00001
+ERROR                 00C169  00C258  0000F0  00001
+CODE                  00C259  00DF34  001CDC  00001
+CHRGET                00DF35  00DF51  00001D  00001
+INIT                  00DF52  00E0E8  000197  00001
+EXTRA                 00E0E9  00E30D  000225  00001
+
+
+Exports list by name:
+---------------------
+
+
+
+Exports list by value:
+----------------------
+
+
+
+Imports list:
+-------------
+
