@@ -30,7 +30,7 @@ BRKAS2 = 1		; if 1, BRK will assemble to two $00 bytes
 
 	.if INROM	
 ;MONTOR	=ESCAPE 
-MONTOR = $ED80  ;==================================================================================================zebra monitor
+MONTOR = $EBFB  ;==================================================================================================zebra monitor
 	.ELSE
 MONTOR	=$FF1F
 GETLINE	=MONTOR		; doesn't work in RAM version because needs adjusted monitor code
@@ -83,7 +83,7 @@ QUOTE	='''		; delimits a string
 COMMA	=','
 CMNT	=';'		; indicates a full line comment
 
-PROMPT	='?'
+PROMPT	='>'
 
 EOL	=$00		; end of line marker
 EOFLD	=$01		; end of field in tokenised source line

@@ -18,6 +18,10 @@ echo "STEP 3 - make Rom "
  mv rom_image1.h ./Zebra_6502_Core_Arduino/rom_image.h
  rm rom_image.h
  echo "=============================="
+
+ wc -c monitor.bin | awk '{printf "The Rom Address: %x",(61440-$1)}' 
+echo ""
+echo "=============================="
  echo "STEP 4 - run py65mon "
  cp ./Zebra_Software_MONITOR_inROM/zebra_monitor.bin ./monitor.bin
  py65mon -i 8001 -o 8002 -r zebra.bin

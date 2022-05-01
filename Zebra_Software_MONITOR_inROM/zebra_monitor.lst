@@ -31,289 +31,492 @@ Current file: zebra_monitor.s
 000000r 1               MSGH        = $2D
 000000r 1               COUNTER     = $2E
 000000r 1               
+000000r 1               ; ZUTA
+000000r 1               MARK         = $0A
+000000r 1               OCTAVE       = $0B
+000000r 1               NOTE         = $0C
 000000r 1               
 000000r 1               
 000000r 1               
-000000r 1               
-000000r 1                          .org $ED80
-00ED80  1               
-00ED80  1               
-00ED80  1  D8           RESET:      CLD             ; Clear decimal arithmetic mode.
-00ED81  1  58                       CLI
-00ED82  1               
-00ED82  1               
-00ED82  1               
-00ED82  1  A9 FF                    LDA #$FF        ; clear screen
-00ED84  1  8D 20 80                 STA $8020
-00ED87  1               
-00ED87  1               
-00ED87  1               
-00ED87  1  A9 22                    LDA #<MSG1
-00ED89  1  85 2C                    STA MSGL
-00ED8B  1  A9 EF                    LDA #>MSG1
-00ED8D  1  85 2D                    STA MSGH
-00ED8F  1  20 FB EE                 JSR SHWMSG      ;* Show Welcome.
-00ED92  1                           ;LDA #$0A
-00ED92  1                           ;JSR ECHO        ;* New line.
-00ED92  1  A9 9B        SOFTRESET:  LDA #$9B        ;* Auto escape.
-00ED94  1  C9 88        NOTCR:      CMP #$88        ;* "<-"? Note this was changed to $88 which is the back space key.
-00ED96  1  F0 27                    BEQ BACKSPACE   ; Yes.
-00ED98  1  C9 9B                    CMP #$9B        ; ESC?
-00ED9A  1  F0 03                    BEQ ESCAPE      ; Yes.
-00ED9C  1  C8                       INY             ; Advance text index.
-00ED9D  1  10 2D                    BPL NEXTCHAR    ; Auto ESC if >127.
-00ED9F  1  A9 52        ESCAPE:     LDA #$52        ; "R"
-00EDA1  1  20 CB EE                 JSR ECHO        ; Output it.
-00EDA4  1  A9 65                    LDA #$65        ; "e"
-00EDA6  1  20 CB EE                 JSR ECHO        ; Output it.
-00EDA9  1  A9 61                    LDA #$61        ; "a"
-00EDAB  1  20 CB EE                 JSR ECHO        ; Output it.
-00EDAE  1  A9 64                    LDA #$64        ; "d"
-00EDB0  1  20 CB EE                 JSR ECHO        ; Output it.
-00EDB3  1  A9 79                    LDA #$79        ; "y"
-00EDB5  1  20 CB EE                 JSR ECHO        ; Output it.
-00EDB8  1  A9 0A        GETLINE:    LDA #$0A        ; CR.
-00EDBA  1  20 CB EE                 JSR ECHO        ; Output it.
-00EDBD  1  A0 01                    LDY #$01        ; Initiallize text index.
-00EDBF  1  88           BACKSPACE:  DEY             ; Backup text index.
-00EDC0  1  30 F6                    BMI GETLINE     ; Beyond start of line, reinitialize.
-00EDC2  1  A9 A0                    LDA #$A0        ;*Space, overwrite the backspaced char.
-00EDC4  1  20 CB EE                 JSR ECHO
-00EDC7  1  A9 FF                    LDA #$FF        ;*Backspace again to get to correct pos.========================
-00EDC9  1  20 CB EE                 JSR ECHO
-00EDCC  1               
-00EDCC  1               
-00EDCC  1               NEXTCHAR:
-00EDCC  1  AD 01 80                 LDA KBD         ; Load character. B7 should be ‘1’.
-00EDCF  1  C9 00                    CMP #$00
-00EDD1  1  F0 F9                    BEQ NEXTCHAR
-00EDD3  1               
-00EDD3  1  C9 60                    CMP #$60        ;*Is it Lower case
-00EDD5  1  30 02                    BMI   CONVERT   ;*Nope, just convert it
-00EDD7  1  29 5F                    AND #$5F        ;*If lower case, convert to Upper case
-00EDD9  1  09 80        CONVERT:    ORA #$80        ;*Convert it to "ASCII Keyboard" Input
-00EDDB  1  99 00 02                 STA IN,Y        ; Add to text buffer.
-00EDDE  1  20 CB EE                 JSR ECHO        ; Display character.
-00EDE1  1  C9 8D                    CMP #$8D        ; CR?
-00EDE3  1  D0 AF                    BNE NOTCR       ; No.
-00EDE5  1  A0 FF                    LDY #$FF        ; Reset text index.
-00EDE7  1  A9 00                    LDA #$00        ; For XAM mode.
-00EDE9  1  AA                       TAX             ; 0->X.
-00EDEA  1  0A           SETSTOR:    ASL             ; Leaves $7B if setting STOR mode.
-00EDEB  1  85 2B        SETMODE:    STA MODE        ; $00 = XAM, $7B = STOR, $AE = BLOK XAM.
-00EDED  1  C8           BLSKIP:     INY             ; Advance text index.
-00EDEE  1  B9 00 02     NEXTITEM:   LDA IN,Y        ; Get charcter.
-00EDF1  1  C9 8D                    CMP #$8D        ; CR?
-00EDF3  1  F0 C3                    BEQ GETLINE     ; Yes, done this line.
-00EDF5  1  C9 AE                    CMP #$AE        ; "."?
-00EDF7  1  90 F4                    BCC BLSKIP      ; Skip delimiter.
-00EDF9  1  F0 F0                    BEQ SETMODE     ; Set BLOCK XAM mode.
-00EDFB  1  C9 BA                    CMP #$BA        ; ":"?
-00EDFD  1  F0 EB                    BEQ SETSTOR     ; Yes, set STOR mode.
-00EDFF  1  C9 D2                    CMP #$D2        ; "R"?
-00EE01  1  F0 41                    BEQ RUN         ; Yes, run user program.  =================================================menu
-00EE03  1  C9 CB                    CMP #'K'+$80   ;
-00EE05  1  F0 49                    BEQ ZEBRA_ASS       ;
-00EE07  1  C9 C9                    CMP #'I'+$80   ;
-00EE09  1  F0 4B                    BEQ LOGO
-00EE0B  1  C9 CD                    CMP #'M'+$80   ; msbasic
-00EE0D  1  F0 50                    BEQ MSBASIC
-00EE0F  1  C9 D8                    CMP #'X'+$80   ; user program
-00EE11  1  F0 46                    BEQ USER_FUNC
-00EE13  1  C9 D6                    CMP #'V'+$80   ; color
-00EE15  1  F0 45                    BEQ MY_COLOR
-00EE17  1               
-00EE17  1               
-00EE17  1               
-00EE17  1  86 28                    STX L           ; $00->L.
-00EE19  1  86 29                    STX H           ; and H.
-00EE1B  1  84 2A                    STY YSAV        ; Save Y for comparison.
-00EE1D  1  B9 00 02     NEXTHEX:     LDA IN,Y       ; Get character for hex test.
-00EE20  1  49 B0                    EOR #$B0        ; Map digits to $0-9.                        B0: 1011 0000
-00EE22  1  C9 0A                    CMP #$0A        ; Digit?
-00EE24  1  90 06                    BCC DIG         ; Yes.
-00EE26  1  69 88                    ADC #$88        ; Map letter "A"-"F" to $FA-FF.
-00EE28  1  C9 FA                    CMP #$FA        ; Hex letter?
-00EE2A  1  90 11                    BCC NOTHEX      ; No, character not hex.
-00EE2C  1  0A           DIG:        ASL
-00EE2D  1  0A                       ASL             ; Hex digit to MSD of A.
-00EE2E  1  0A                       ASL
-00EE2F  1  0A                       ASL
-00EE30  1  A2 04                    LDX #$04        ; Shift count.
-00EE32  1  0A           HEXSHIFT:   ASL             ; Hex digit left MSB to carry.
-00EE33  1  26 28                    ROL L           ; Rotate into LSD.
-00EE35  1  26 29                    ROL H           ; Rotate into MSD's.
-00EE37  1  CA                       DEX             ; Done 4 shifts?
-00EE38  1  D0 F8                    BNE HEXSHIFT    ; No, loop.
-00EE3A  1  C8                       INY             ; Advance text index.
-00EE3B  1  D0 E0                    BNE NEXTHEX     ; Always taken. Check next character for hex.
-00EE3D  1  C4 2A        NOTHEX:     CPY YSAV        ; Check if L, H empty (no hex digits).
-00EE3F  1  D0 21                    BNE NOESCAPE    ;* Branch out of range, had to improvise...
-00EE41  1  4C 9F ED                 JMP ESCAPE      ; Yes, generate ESC sequence.
-00EE44  1               
-00EE44  1  20 4A EE     RUN:        JSR ACTRUN      ;* JSR to the Address we want to run.
-00EE47  1  4C 92 ED                 JMP   SOFTRESET ;* When returned for the program, reset EWOZ.
-00EE4A  1  6C 24 00     ACTRUN:     JMP (XAML)      ; Run at current XAM index.
-00EE4D  1               
-00EE4D  1               
-00EE4D  1               
-00EE4D  1  4C D3 EE     ZEBRA_CLS:  JMP ZEBRA_CLS1
-00EE50  1               
-00EE50  1               ZEBRA_ASS:
-00EE50  1  20 4D EE                 JSR ZEBRA_CLS
-00EE53  1  4C 00 F0                 JMP $F000
-00EE56  1               
-00EE56  1  4C 08 EF     LOGO:       JMP LOGO1
-00EE59  1               
-00EE59  1  4C DB EE     USER_FUNC:  JMP USER_FUNC1
-00EE5C  1  4C DE EE     MY_COLOR:  JMP MY_COLOR1
-00EE5F  1  4C F5 EE     MSBASIC:    JMP MSBASIC1
-00EE62  1               
-00EE62  1  24 2B        NOESCAPE:   BIT MODE        ; Test MODE byte.
-00EE64  1  50 0D                    BVC NOTSTOR     ; B6=0 for STOR, 1 for XAM and BLOCK XAM
-00EE66  1  A5 28                    LDA L           ; LSD's of hex data.
-00EE68  1  81 26                    STA (STL, X)    ; Store at current "store index".
-00EE6A  1  E6 26                    INC STL         ; Increment store index.
-00EE6C  1  D0 80                    BNE NEXTITEM    ; Get next item. (no carry).
-00EE6E  1  E6 27                    INC STH         ; Add carry to 'store index' high order.
-00EE70  1  4C EE ED     TONEXTITEM: JMP NEXTITEM    ; Get next command item.
-00EE73  1  30 2B        NOTSTOR:    BMI XAMNEXT     ; B7=0 for XAM, 1 for BLOCK XAM.
-00EE75  1  A2 02                    LDX #$02        ; Byte count.
-00EE77  1  B5 27        SETADR:     LDA L-1,X       ; Copy hex data to
-00EE79  1  95 25                    STA STL-1,X     ; "store index".
-00EE7B  1  95 23                    STA XAML-1,X    ; And to "XAM index'.
-00EE7D  1  CA                       DEX             ; Next of 2 bytes.
-00EE7E  1  D0 F7                    BNE SETADR      ; Loop unless X = 0.
-00EE80  1  D0 14        NXTPRNT:    BNE PRDATA      ; NE means no address to print.
-00EE82  1  A9 0A                    LDA #$0A        ; CR.
-00EE84  1  20 CB EE                 JSR ECHO        ; Output it.
-00EE87  1  A5 25                    LDA XAMH        ; 'Examine index' high-order byte.
-00EE89  1  20 B8 EE                 JSR PRBYTE      ; Output it in hex format.
-00EE8C  1  A5 24                    LDA XAML        ; Low-order "examine index" byte.
-00EE8E  1  20 B8 EE                 JSR PRBYTE      ; Output it in hex format.
-00EE91  1  A9 BA                    LDA #$BA        ; ":".
-00EE93  1  20 CB EE                 JSR ECHO        ; Output it.
-00EE96  1  A9 A0        PRDATA:     LDA #$A0        ; Blank.
-00EE98  1  20 CB EE                 JSR ECHO        ; Output it.
-00EE9B  1  A1 24                    LDA (XAML,X)    ; Get data byte at 'examine index".
-00EE9D  1  20 B8 EE                 JSR PRBYTE      ; Output it in hex format.
-00EEA0  1  86 2B        XAMNEXT:    STX MODE        ; 0-> MODE (XAM mode).
-00EEA2  1  A5 24                    LDA XAML
-00EEA4  1  C5 28                    CMP L           ; Compare 'examine index" to hex data.
-00EEA6  1  A5 25                    LDA XAMH
-00EEA8  1  E5 29                    SBC H
-00EEAA  1  B0 C4                    BCS TONEXTITEM  ; Not less, so no more data to output.
-00EEAC  1  E6 24                    INC XAML
-00EEAE  1  D0 02                    BNE MOD8CHK     ; Increment 'examine index".
-00EEB0  1  E6 25                    INC XAMH
-00EEB2  1  A5 24        MOD8CHK:    LDA XAML        ; Check low-order 'exainine index' byte
-00EEB4  1  29 03                    AND #$03        ; For MOD 8=0 ** changed to $0F to get 16 values per row **
-00EEB6  1  10 C8                    BPL NXTPRNT     ; Always taken.
-00EEB8  1  48           PRBYTE:     PHA             ; Save A for LSD.
-00EEB9  1  4A                       LSR
-00EEBA  1  4A                       LSR
-00EEBB  1  4A                       LSR             ; MSD to LSD position.
-00EEBC  1  4A                       LSR
-00EEBD  1  20 C1 EE                 JSR PRHEX       ; Output hex digit.
-00EEC0  1  68                       PLA             ; Restore A.
-00EEC1  1  29 0F        PRHEX:      AND #$0F        ; Mask LSD for hex print.
-00EEC3  1  09 B0                    ORA #$B0        ; Add "0".
-00EEC5  1  C9 BA                    CMP #$BA        ; Digit?
-00EEC7  1  90 02                    BCC ECHO        ; Yes, output it.
-00EEC9  1  69 06                    ADC #$06        ; Add offset for letter.
-00EECB  1  48           ECHO:       PHA             ;*Save A
-00EECC  1  29 7F                    AND #$7F        ;*Change to "standard ASCII"
-00EECE  1               
-00EECE  1               
-00EECE  1  8D 02 80                 STA DSP         ; Output character. Sets DA.
-00EED1  1               
-00EED1  1  68                       PLA             ;*Restore A
-00EED2  1  60                       RTS             ;*Done, over and out...
-00EED3  1               
-00EED3  1               ZEBRA_CLS1:
-00EED3  1  48                       PHA
-00EED4  1  A9 FF                    LDA #$FF        ; clear screen
-00EED6  1  8D 20 80                 STA $8020
-00EED9  1  68                       PLA
-00EEDA  1  60                       RTS
-00EEDB  1               
-00EEDB  1               USER_FUNC1:
-00EEDB  1               
-00EEDB  1  4C 00 90                 JMP  $9000
-00EEDE  1               
-00EEDE  1               
-00EEDE  1               MY_COLOR1:
-00EEDE  1  A9 1F                    LDA  #$1F
-00EEE0  1  8D 0D 71                 STA  $710D
-00EEE3  1  A9 90                    LDA  #$90
-00EEE5  1  8D 0E 71                 STA  $710E
-00EEE8  1  A9 0E                    LDA  #$0E
-00EEEA  1  8D 0F 71                 STA  $710F
-00EEED  1  A9 01                    LDA  #$01
-00EEEF  1  8D 05 80                 STA  $8005
-00EEF2  1  4C 92 ED                 JMP  SOFTRESET
-00EEF5  1               
-00EEF5  1               MSBASIC1:
-00EEF5  1  20 4D EE                 JSR ZEBRA_CLS
-00EEF8  1  4C 58 DF                 JMP $DF58
-00EEFB  1               
-00EEFB  1               
-00EEFB  1               
-00EEFB  1  A0 00        SHWMSG:     LDY #$0
-00EEFD  1  B1 2C        PRINT:      LDA (MSGL),Y
-00EEFF  1  F0 06                    BEQ DONE
-00EF01  1  20 CB EE                 JSR ECHO
-00EF04  1  C8                       INY
-00EF05  1  D0 F6                    BNE PRINT
-00EF07  1  60           DONE:       RTS
-00EF08  1               
-00EF08  1  A9 FF        LOGO1:      LDA #$FF
-00EF0A  1  8D 20 80                 STA $8020
-00EF0D  1  A9 4B                    LDA #<MSG2
-00EF0F  1  85 2C                    STA MSGL
-00EF11  1  A9 EF                    LDA #>MSG2
-00EF13  1  85 2D                    STA MSGH
-00EF15  1  20 FB EE                 JSR SHWMSG
-00EF18  1  AD 01 80     LOGO_LP:    LDA KBD
-00EF1B  1  C9 00                    CMP #$00
-00EF1D  1  F0 F9                    BEQ LOGO_LP
-00EF1F  1  4C 80 ED                 JMP RESET
-00EF22  1               
-00EF22  1               
-00EF22  1               
-00EF22  1  2A 2A 20 5A  MSG1:      .byte "** Zebra Monitor **    32K RAM System   ",0
-00EF26  1  65 62 72 61  
-00EF2A  1  20 4D 6F 6E  
-00EF4B  1                                ;123456789ABCDEFGHIJK123456789ABCDEFGHIJK
-00EF4B  1               MSG2:      ;.byte "^^^^^^^^^^^^^^^^^^^^"
-00EF4B  1  2A 20 20 20             .byte "*       (>_^)      *"
-00EF4F  1  20 20 20 20  
-00EF53  1  28 3E 5F 5E  
-00EF5F  1  2A 20 20 20             .byte "*                  *"
-00EF63  1  20 20 20 20  
-00EF67  1  20 20 20 20  
-00EF73  1  2A 20 20 20             .byte "*       Zebra      *"
-00EF77  1  20 20 20 20  
-00EF7B  1  5A 65 62 72  
-00EF87  1  2A 20 20 20             .byte "*       v1.00      *"
-00EF8B  1  20 20 20 20  
-00EF8F  1  76 31 2E 30  
-00EF9B  1  2A 20 20 20             .byte "*                  *"
-00EF9F  1  20 20 20 20  
-00EFA3  1  20 20 20 20  
-00EFAF  1  2A 20 48 6F             .byte "* HomebrewComputer *"
-00EFB3  1  6D 65 62 72  
-00EFB7  1  65 77 43 6F  
-00EFC3  1  2A 20 20 20             .byte "*                  *"
-00EFC7  1  20 20 20 20  
-00EFCB  1  20 20 20 20  
-00EFD7  1  2A 20 20 20             .byte "*      Earture     *"
-00EFDB  1  20 20 20 45  
-00EFDF  1  61 72 74 75  
-00EFEB  1  2A 20 20 20             .byte "*                  *",0
-00EFEF  1  20 20 20 20  
-00EFF3  1  20 20 20 20  
-00F000  1                          ;.byte "^^^^^^^^^^^^^^^^^^^",0
+000000r 1                          .org $EBFB
+00EBFB  1               
+00EBFB  1               
+00EBFB  1  D8           RESET:      CLD             ; Clear decimal arithmetic mode.
+00EBFC  1  58                       CLI
+00EBFD  1               
+00EBFD  1               
+00EBFD  1               
+00EBFD  1  A9 FF                    LDA #$FF        ; clear screen
+00EBFF  1  8D 20 80                 STA $8020
+00EC02  1               
+00EC02  1               
+00EC02  1               
+00EC02  1  A9 95                    LDA #<MSG1
+00EC04  1  85 2C                    STA MSGL
+00EC06  1  A9 ED                    LDA #>MSG1
+00EC08  1  85 2D                    STA MSGH
+00EC0A  1  20 68 ED                 JSR SHWMSG      ;* Show Welcome.
+00EC0D  1               
+00EC0D  1  A9 9B        SOFTRESET:  LDA #$9B        ;* Auto escape.
+00EC0F  1  C9 88        NOTCR:      CMP #$88        ;* "<-"? Note this was changed to $88 which is the back space key.
+00EC11  1  F0 19                    BEQ BACKSPACE   ; Yes.
+00EC13  1  C9 9B                    CMP #$9B        ; ESC?
+00EC15  1  F0 03                    BEQ ESCAPE      ; Yes.
+00EC17  1  C8                       INY             ; Advance text index.
+00EC18  1  10 1F                    BPL NEXTCHAR    ; Auto ESC if >127.
+00EC1A  1  A9 8F        ESCAPE:     LDA #<MSG_READY
+00EC1C  1  85 2C                    STA MSGL
+00EC1E  1  A9 ED                    LDA #>MSG_READY
+00EC20  1  85 2D                    STA MSGH
+00EC22  1  20 68 ED                 JSR SHWMSG      ;* Show Ready.
+00EC25  1  A9 0A        GETLINE:    LDA #$0A        ; CR.
+00EC27  1  20 38 ED                 JSR ECHO        ; Output it.
+00EC2A  1  A0 01                    LDY #$01        ; Initiallize text index.
+00EC2C  1  88           BACKSPACE:  DEY             ; Backup text index.
+00EC2D  1  30 F6                    BMI GETLINE     ; Beyond start of line, reinitialize.
+00EC2F  1  A9 A0                    LDA #$A0        ;*Space, overwrite the backspaced char.
+00EC31  1  20 38 ED                 JSR ECHO
+00EC34  1  A9 FF                    LDA #$FF        ;*Backspace again to get to correct pos.========================
+00EC36  1  20 38 ED                 JSR ECHO
+00EC39  1               
+00EC39  1               
+00EC39  1               NEXTCHAR:
+00EC39  1  AD 01 80                 LDA KBD         ; Load character. B7 should be ‘1’.
+00EC3C  1  C9 00                    CMP #$00
+00EC3E  1  F0 F9                    BEQ NEXTCHAR
+00EC40  1               
+00EC40  1  C9 60                    CMP #$60        ;*Is it Lower case
+00EC42  1  30 02                    BMI   CONVERT   ;*Nope, just convert it
+00EC44  1  29 5F                    AND #$5F        ;*If lower case, convert to Upper case
+00EC46  1  09 80        CONVERT:    ORA #$80        ;*Convert it to "ASCII Keyboard" Input
+00EC48  1  99 00 02                 STA IN,Y        ; Add to text buffer.
+00EC4B  1  20 38 ED                 JSR ECHO        ; Display character.
+00EC4E  1  C9 8D                    CMP #$8D        ; CR?
+00EC50  1  D0 BD                    BNE NOTCR       ; No.
+00EC52  1  A0 FF                    LDY #$FF        ; Reset text index.
+00EC54  1  A9 00                    LDA #$00        ; For XAM mode.
+00EC56  1  AA                       TAX             ; 0->X.
+00EC57  1  0A           SETSTOR:    ASL             ; Leaves $7B if setting STOR mode.
+00EC58  1  85 2B        SETMODE:    STA MODE        ; $00 = XAM, $7B = STOR, $AE = BLOK XAM.
+00EC5A  1  C8           BLSKIP:     INY             ; Advance text index.
+00EC5B  1  B9 00 02     NEXTITEM:   LDA IN,Y        ; Get charcter.
+00EC5E  1  C9 8D                    CMP #$8D        ; CR?
+00EC60  1  F0 C3                    BEQ GETLINE     ; Yes, done this line.
+00EC62  1  C9 AE                    CMP #$AE        ; "."?
+00EC64  1  90 F4                    BCC BLSKIP      ; Skip delimiter.
+00EC66  1  F0 F0                    BEQ SETMODE     ; Set BLOCK XAM mode.
+00EC68  1  C9 BA                    CMP #$BA        ; ":"?
+00EC6A  1  F0 EB                    BEQ SETSTOR     ; Yes, set STOR mode.
+00EC6C  1  C9 D2                    CMP #$D2        ; "R"?
+00EC6E  1  F0 41                    BEQ RUN         ; Yes, run user program.  =================================================menu
+00EC70  1  C9 CB                    CMP #'K'+$80   ;
+00EC72  1  F0 49                    BEQ ZEBRA_ASS       ;
+00EC74  1  C9 C9                    CMP #'I'+$80   ;
+00EC76  1  F0 4B                    BEQ LOGO
+00EC78  1  C9 CD                    CMP #'M'+$80   ; msbasic
+00EC7A  1  F0 50                    BEQ MSBASIC
+00EC7C  1  C9 D8                    CMP #'X'+$80   ; user program
+00EC7E  1  F0 46                    BEQ USER_FUNC
+00EC80  1  C9 D6                    CMP #'V'+$80   ; color
+00EC82  1  F0 45                    BEQ MY_COLOR
+00EC84  1               
+00EC84  1               
+00EC84  1               
+00EC84  1  86 28                    STX L           ; $00->L.
+00EC86  1  86 29                    STX H           ; and H.
+00EC88  1  84 2A                    STY YSAV        ; Save Y for comparison.
+00EC8A  1  B9 00 02     NEXTHEX:     LDA IN,Y       ; Get character for hex test.
+00EC8D  1  49 B0                    EOR #$B0        ; Map digits to $0-9.                        B0: 1011 0000
+00EC8F  1  C9 0A                    CMP #$0A        ; Digit?
+00EC91  1  90 06                    BCC DIG         ; Yes.
+00EC93  1  69 88                    ADC #$88        ; Map letter "A"-"F" to $FA-FF.
+00EC95  1  C9 FA                    CMP #$FA        ; Hex letter?
+00EC97  1  90 11                    BCC NOTHEX      ; No, character not hex.
+00EC99  1  0A           DIG:        ASL
+00EC9A  1  0A                       ASL             ; Hex digit to MSD of A.
+00EC9B  1  0A                       ASL
+00EC9C  1  0A                       ASL
+00EC9D  1  A2 04                    LDX #$04        ; Shift count.
+00EC9F  1  0A           HEXSHIFT:   ASL             ; Hex digit left MSB to carry.
+00ECA0  1  26 28                    ROL L           ; Rotate into LSD.
+00ECA2  1  26 29                    ROL H           ; Rotate into MSD's.
+00ECA4  1  CA                       DEX             ; Done 4 shifts?
+00ECA5  1  D0 F8                    BNE HEXSHIFT    ; No, loop.
+00ECA7  1  C8                       INY             ; Advance text index.
+00ECA8  1  D0 E0                    BNE NEXTHEX     ; Always taken. Check next character for hex.
+00ECAA  1  C4 2A        NOTHEX:     CPY YSAV        ; Check if L, H empty (no hex digits).
+00ECAC  1  D0 21                    BNE NOESCAPE    ;* Branch out of range, had to improvise...
+00ECAE  1  4C 1A EC                 JMP ESCAPE      ; Yes, generate ESC sequence.
+00ECB1  1               
+00ECB1  1  20 B7 EC     RUN:        JSR ACTRUN      ;* JSR to the Address we want to run.
+00ECB4  1  4C 0D EC                 JMP   SOFTRESET ;* When returned for the program, reset EWOZ.
+00ECB7  1  6C 24 00     ACTRUN:     JMP (XAML)      ; Run at current XAM index.
+00ECBA  1               
+00ECBA  1               
+00ECBA  1               
+00ECBA  1  4C 40 ED     ZEBRA_CLS:  JMP ZEBRA_CLS1
+00ECBD  1               
+00ECBD  1               ZEBRA_ASS:
+00ECBD  1  20 BA EC                 JSR ZEBRA_CLS
+00ECC0  1  4C 00 F0                 JMP $F000
+00ECC3  1               
+00ECC3  1  4C 75 ED     LOGO:       JMP LOGO1
+00ECC6  1               
+00ECC6  1  4C 48 ED     USER_FUNC:  JMP USER_FUNC1
+00ECC9  1  4C 4B ED     MY_COLOR:  JMP MY_COLOR1
+00ECCC  1  4C 62 ED     MSBASIC:    JMP MSBASIC1
+00ECCF  1               
+00ECCF  1  24 2B        NOESCAPE:   BIT MODE        ; Test MODE byte.
+00ECD1  1  50 0D                    BVC NOTSTOR     ; B6=0 for STOR, 1 for XAM and BLOCK XAM
+00ECD3  1  A5 28                    LDA L           ; LSD's of hex data.
+00ECD5  1  81 26                    STA (STL, X)    ; Store at current "store index".
+00ECD7  1  E6 26                    INC STL         ; Increment store index.
+00ECD9  1  D0 80                    BNE NEXTITEM    ; Get next item. (no carry).
+00ECDB  1  E6 27                    INC STH         ; Add carry to 'store index' high order.
+00ECDD  1  4C 5B EC     TONEXTITEM: JMP NEXTITEM    ; Get next command item.
+00ECE0  1  30 2B        NOTSTOR:    BMI XAMNEXT     ; B7=0 for XAM, 1 for BLOCK XAM.
+00ECE2  1  A2 02                    LDX #$02        ; Byte count.
+00ECE4  1  B5 27        SETADR:     LDA L-1,X       ; Copy hex data to
+00ECE6  1  95 25                    STA STL-1,X     ; "store index".
+00ECE8  1  95 23                    STA XAML-1,X    ; And to "XAM index'.
+00ECEA  1  CA                       DEX             ; Next of 2 bytes.
+00ECEB  1  D0 F7                    BNE SETADR      ; Loop unless X = 0.
+00ECED  1  D0 14        NXTPRNT:    BNE PRDATA      ; NE means no address to print.
+00ECEF  1  A9 0A                    LDA #$0A        ; CR.
+00ECF1  1  20 38 ED                 JSR ECHO        ; Output it.
+00ECF4  1  A5 25                    LDA XAMH        ; 'Examine index' high-order byte.
+00ECF6  1  20 25 ED                 JSR PRBYTE      ; Output it in hex format.
+00ECF9  1  A5 24                    LDA XAML        ; Low-order "examine index" byte.
+00ECFB  1  20 25 ED                 JSR PRBYTE      ; Output it in hex format.
+00ECFE  1  A9 BA                    LDA #$BA        ; ":".
+00ED00  1  20 38 ED                 JSR ECHO        ; Output it.
+00ED03  1  A9 A0        PRDATA:     LDA #$A0        ; Blank.
+00ED05  1  20 38 ED                 JSR ECHO        ; Output it.
+00ED08  1  A1 24                    LDA (XAML,X)    ; Get data byte at 'examine index".
+00ED0A  1  20 25 ED                 JSR PRBYTE      ; Output it in hex format.
+00ED0D  1  86 2B        XAMNEXT:    STX MODE        ; 0-> MODE (XAM mode).
+00ED0F  1  A5 24                    LDA XAML
+00ED11  1  C5 28                    CMP L           ; Compare 'examine index" to hex data.
+00ED13  1  A5 25                    LDA XAMH
+00ED15  1  E5 29                    SBC H
+00ED17  1  B0 C4                    BCS TONEXTITEM  ; Not less, so no more data to output.
+00ED19  1  E6 24                    INC XAML
+00ED1B  1  D0 02                    BNE MOD8CHK     ; Increment 'examine index".
+00ED1D  1  E6 25                    INC XAMH
+00ED1F  1  A5 24        MOD8CHK:    LDA XAML        ; Check low-order 'exainine index' byte
+00ED21  1  29 03                    AND #$03        ; For MOD 8=0 ** changed to $0F to get 16 values per row **
+00ED23  1  10 C8                    BPL NXTPRNT     ; Always taken.
+00ED25  1  48           PRBYTE:     PHA             ; Save A for LSD.
+00ED26  1  4A                       LSR
+00ED27  1  4A                       LSR
+00ED28  1  4A                       LSR             ; MSD to LSD position.
+00ED29  1  4A                       LSR
+00ED2A  1  20 2E ED                 JSR PRHEX       ; Output hex digit.
+00ED2D  1  68                       PLA             ; Restore A.
+00ED2E  1  29 0F        PRHEX:      AND #$0F        ; Mask LSD for hex print.
+00ED30  1  09 B0                    ORA #$B0        ; Add "0".
+00ED32  1  C9 BA                    CMP #$BA        ; Digit?
+00ED34  1  90 02                    BCC ECHO        ; Yes, output it.
+00ED36  1  69 06                    ADC #$06        ; Add offset for letter.
+00ED38  1  48           ECHO:       PHA             ;*Save A
+00ED39  1  29 7F                    AND #$7F        ;*Change to "standard ASCII"
+00ED3B  1               
+00ED3B  1               
+00ED3B  1  8D 02 80                 STA DSP         ; Output character. Sets DA.
+00ED3E  1               
+00ED3E  1  68                       PLA             ;*Restore A
+00ED3F  1  60                       RTS             ;*Done, over and out...
+00ED40  1               
+00ED40  1               ZEBRA_CLS1:
+00ED40  1  48                       PHA
+00ED41  1  A9 FF                    LDA #$FF        ; clear screen
+00ED43  1  8D 20 80                 STA $8020
+00ED46  1  68                       PLA
+00ED47  1  60                       RTS
+00ED48  1               
+00ED48  1               USER_FUNC1:
+00ED48  1               
+00ED48  1  4C 00 90                 JMP  $9000
+00ED4B  1               
+00ED4B  1               
+00ED4B  1               MY_COLOR1:
+00ED4B  1  A9 1F                    LDA  #$1F
+00ED4D  1  8D 0D 71                 STA  $710D
+00ED50  1  A9 90                    LDA  #$90
+00ED52  1  8D 0E 71                 STA  $710E
+00ED55  1  A9 0E                    LDA  #$0E
+00ED57  1  8D 0F 71                 STA  $710F
+00ED5A  1  A9 01                    LDA  #$01
+00ED5C  1  8D 05 80                 STA  $8005
+00ED5F  1  4C 0D EC                 JMP  SOFTRESET
+00ED62  1               
+00ED62  1               MSBASIC1:
+00ED62  1  20 BA EC                 JSR ZEBRA_CLS
+00ED65  1  4C 58 DF                 JMP $DF58
+00ED68  1               
+00ED68  1               
+00ED68  1               
+00ED68  1  A0 00        SHWMSG:     LDY #$0
+00ED6A  1  B1 2C        PRINT:      LDA (MSGL),Y
+00ED6C  1  F0 06                    BEQ DONE
+00ED6E  1  20 38 ED                 JSR ECHO
+00ED71  1  C8                       INY
+00ED72  1  D0 F6                    BNE PRINT
+00ED74  1  60           DONE:       RTS
+00ED75  1               
+00ED75  1  A9 FF        LOGO1:      LDA #$FF
+00ED77  1  8D 20 80                 STA $8020
+00ED7A  1  A9 BE                    LDA #<MSG2
+00ED7C  1  85 2C                    STA MSGL
+00ED7E  1  A9 ED                    LDA #>MSG2
+00ED80  1  85 2D                    STA MSGH
+00ED82  1  20 68 ED                 JSR SHWMSG
+00ED85  1  AD 01 80     LOGO_LP:    LDA KBD
+00ED88  1  C9 00                    CMP #$00
+00ED8A  1  F0 F9                    BEQ LOGO_LP
+00ED8C  1  4C FB EB                 JMP RESET
+00ED8F  1               
+00ED8F  1               
+00ED8F  1  52 65 61 64  MSG_READY: .byte "Ready",0
+00ED93  1  79 00        
+00ED95  1               
+00ED95  1  2A 2A 20 5A  MSG1:      .byte "** Zebra Monitor **    32K RAM System   ",0
+00ED99  1  65 62 72 61  
+00ED9D  1  20 4D 6F 6E  
+00EDBE  1                                ;123456789ABCDEFGHIJK123456789ABCDEFGHIJK
+00EDBE  1               MSG2:      ;.byte "^^^^^^^^^^^^^^^^^^^^"
+00EDBE  1  2A 20 20 20             .byte "*       (>_^)      *"
+00EDC2  1  20 20 20 20  
+00EDC6  1  28 3E 5F 5E  
+00EDD2  1  2A 20 20 20             .byte "*                  *"
+00EDD6  1  20 20 20 20  
+00EDDA  1  20 20 20 20  
+00EDE6  1  2A 20 20 20             .byte "*       Zebra      *"
+00EDEA  1  20 20 20 20  
+00EDEE  1  5A 65 62 72  
+00EDFA  1  2A 20 20 20             .byte "*       v1.00      *"
+00EDFE  1  20 20 20 20  
+00EE02  1  76 31 2E 30  
+00EE0E  1  2A 20 20 20             .byte "*                  *"
+00EE12  1  20 20 20 20  
+00EE16  1  20 20 20 20  
+00EE22  1  2A 20 48 6F             .byte "* HomebrewComputer *"
+00EE26  1  6D 65 62 72  
+00EE2A  1  65 77 43 6F  
+00EE36  1  2A 20 20 20             .byte "*                  *"
+00EE3A  1  20 20 20 20  
+00EE3E  1  20 20 20 20  
+00EE4A  1  2A 20 20 20             .byte "*      Earture     *"
+00EE4E  1  20 20 20 45  
+00EE52  1  61 72 74 75  
+00EE5E  1  2A 20 20 20             .byte "*                  *",0
+00EE62  1  20 20 20 20  
+00EE66  1  20 20 20 20  
+00EE73  1                          ;.byte "^^^^^^^^^^^^^^^^^^^",0
+00EE73  1               
+00EE73  1                                        ; C,  C_S, D, D_S, E, F, F_S,  G,   G_S,  A,  A_S,  B,
+00EE73  1  44 15 E8 BF  NOTE_TABLE_C3_R00: .byte 68, 21, 232, 191, 151, 114, 79, 46, 14, 241, 213, 186    ;octave 3
+00EE77  1  97 72 4F 2E  
+00EE7B  1  0E F1 D5 BA  
+00EE7F  1  A2 8A 74 5F  NOTE_TABLE_C4_R00: .byte 162, 138, 116, 95, 75, 57, 39, 23, 7, 248, 234, 221     ;octave 4
+00EE83  1  4B 39 27 17  
+00EE87  1  07 F8 EA DD  
+00EE8B  1  D1 C5 BA AF  NOTE_TABLE_C5_R00: .byte 209, 197, 186, 175, 165, 156, 147, 139, 131, 124, 117, 110  ;octave 5
+00EE8F  1  A5 9C 93 8B  
+00EE93  1  83 7C 75 6E  
+00EE97  1  03 03 02 02  NOTE_TABLE_C3_R01: .byte 3, 3, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1
+00EE9B  1  02 02 02 02  
+00EE9F  1  02 01 01 01  
+00EEA3  1  01 01 01 01  NOTE_TABLE_C4_R01: .byte   1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0
+00EEA7  1  01 01 01 01  
+00EEAB  1  01 00 00 00  
+00EEAF  1  00 00 00 00  NOTE_TABLE_C5_R01: .byte   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+00EEB3  1  00 00 00 00  
+00EEB7  1  00 00 00 00  
+00EEBB  1  41 57 53 45  KEY_PAD_CHAR: .byte 'A','W','S','E','D','F','T','G','Y','H','U','J','C','4'
+00EEBF  1  44 46 54 47  
+00EEC3  1  59 48 55 4A  
+00EEC9  1  61 77 73 65  KEY_PAD_CHAR_LOW: .byte 'a','w','s','e','d','f','t','g','y','h','u','j','c','4'
+00EECD  1  64 66 74 67  
+00EED1  1  79 68 75 6A  
+00EED7  1  64 51 66 53  KEY_PAD_PIXEL: .byte $64,$51,$66,$53,$68,$69,$56,$6B,$58,$6D,$5A,$6F,$B8,$B9
+00EEDB  1  68 69 56 6B  
+00EEDF  1  58 6D 5A 6F  
+00EEE5  1               
+00EEE5  1  2A 2A 20 5A  MSG_ZUTA:      .byte "** Zebra   Piano **",0
+00EEE9  1  65 62 72 61  
+00EEED  1  20 20 20 50  
+00EEF9  1                                    ;123456789ABCDEFGHIJK123456789ABCDEFGHIJK
+00EEF9  1               
+00EEF9  1               KEY_IS_PRESSED     = $2F
+00EEF9  1               VOL = $2E
+00EEF9  1               IS_WEAK = $2D
+00EEF9  1               IS_WEAK_2 = $2C
+00EEF9  1               NOTE_VECTOR_R0 = $10
+00EEF9  1               NOTE_VECTOR_R1 = $12
+00EEF9  1               
+00EEF9  1  A9 FF        ZUTA:       LDA #$FF               ;clear screen
+00EEFB  1  8D 20 80                 STA $8020
+00EEFE  1  A9 E5                    LDA #<MSG_ZUTA         ;show welcome screen
+00EF00  1  85 2C                    STA MSGL
+00EF02  1  A9 EE                    LDA #>MSG_ZUTA
+00EF04  1  85 2D                    STA MSGH
+00EF06  1  20 68 ED                 JSR SHWMSG
+00EF09  1               
+00EF09  1  A9 FF                    LDA #$FF               ;set button states
+00EF0B  1  85 2D                    STA IS_WEAK
+00EF0D  1  A9 00                    LDA #$00
+00EF0F  1  85 2E                    STA VOL
+00EF11  1  A9 07                    LDA #$07
+00EF13  1  85 2C                    STA IS_WEAK_2
+00EF15  1               
+00EF15  1  A9 7F                    LDA #<NOTE_TABLE_C4_R00
+00EF17  1  85 10                    STA NOTE_VECTOR_R0
+00EF19  1  A9 EE                    LDA #>NOTE_TABLE_C4_R00
+00EF1B  1  85 11                    STA NOTE_VECTOR_R0+1
+00EF1D  1               
+00EF1D  1  A9 A3                    LDA #<NOTE_TABLE_C4_R01
+00EF1F  1  85 12                    STA NOTE_VECTOR_R1
+00EF21  1  A9 EE                    LDA #>NOTE_TABLE_C4_R01
+00EF23  1  85 13                    STA NOTE_VECTOR_R1+1
+00EF25  1               
+00EF25  1               
+00EF25  1  A2 00                    LDX #$00
+00EF27  1  BC D7 EE     PRINT_KEY:  LDY KEY_PAD_PIXEL,X
+00EF2A  1  BD BB EE                 LDA KEY_PAD_CHAR,X
+00EF2D  1  99 00 73                 STA $7300,Y
+00EF30  1  E8                       INX
+00EF31  1  8A                       TXA
+00EF32  1  C9 0E                    CMP #$0E
+00EF34  1  D0 F1                    BNE PRINT_KEY
+00EF36  1               
+00EF36  1  A9 0D                    LDA #$0D
+00EF38  1  8D 19 73                 STA $7319
+00EF3B  1               
+00EF3B  1  A2 00                    LDX #$00
+00EF3D  1               
+00EF3D  1               
+00EF3D  1               NEXT_CHAR:
+00EF3D  1  AD 01 80                 LDA $8001
+00EF40  1  C9 00                    CMP #$00
+00EF42  1  F0 57                    BEQ N_1
+00EF44  1  C9 33                    CMP #$33 ; octave 3
+00EF46  1  F0 0B                    BEQ SET_OCTAVE_C3
+00EF48  1  C9 34                    CMP #$34 ; octave 4
+00EF4A  1  F0 1F                    BEQ SET_OCTAVE_C4
+00EF4C  1  C9 35                    CMP #$35 ; octave 5
+00EF4E  1  F0 33                    BEQ SET_OCTAVE_C5
+00EF50  1               
+00EF50  1  4C EB EF                 JMP KEY_PRESSED
+00EF53  1               
+00EF53  1               SET_OCTAVE_C3:
+00EF53  1               
+00EF53  1               
+00EF53  1  A9 73                    LDA #<NOTE_TABLE_C3_R00
+00EF55  1  85 10                    STA NOTE_VECTOR_R0
+00EF57  1  A9 EE                    LDA #>NOTE_TABLE_C3_R00
+00EF59  1  85 11                    STA NOTE_VECTOR_R0+1
+00EF5B  1               
+00EF5B  1  A9 97                    LDA #<NOTE_TABLE_C3_R01
+00EF5D  1  85 12                    STA NOTE_VECTOR_R1
+00EF5F  1  A9 EE                    LDA #>NOTE_TABLE_C3_R01
+00EF61  1  85 13                    STA NOTE_VECTOR_R1+1
+00EF63  1  A9 33                    LDA #$33
+00EF65  1  8D B9 73                 STA $73B9
+00EF68  1  4C 3D EF                 JMP NEXT_CHAR
+00EF6B  1               SET_OCTAVE_C4:
+00EF6B  1  A9 7F                      LDA #<NOTE_TABLE_C4_R00
+00EF6D  1  85 10                    STA NOTE_VECTOR_R0
+00EF6F  1  A9 EE                    LDA #>NOTE_TABLE_C4_R00
+00EF71  1  85 11                    STA NOTE_VECTOR_R0+1
+00EF73  1               
+00EF73  1  A9 A3                    LDA #<NOTE_TABLE_C4_R01
+00EF75  1  85 12                    STA NOTE_VECTOR_R1
+00EF77  1  A9 EE                    LDA #>NOTE_TABLE_C4_R01
+00EF79  1  85 13                    STA NOTE_VECTOR_R1+1
+00EF7B  1  A9 34                    LDA #$34
+00EF7D  1  8D B9 73                 STA $73B9
+00EF80  1  4C 3D EF                   JMP NEXT_CHAR
+00EF83  1               
+00EF83  1               SET_OCTAVE_C5:
+00EF83  1  A9 8B                    LDA #<NOTE_TABLE_C5_R00
+00EF85  1  85 10                    STA NOTE_VECTOR_R0
+00EF87  1  A9 EE                    LDA #>NOTE_TABLE_C5_R00
+00EF89  1  85 11                    STA NOTE_VECTOR_R0+1
+00EF8B  1               
+00EF8B  1  A9 AF                    LDA #<NOTE_TABLE_C5_R01
+00EF8D  1  85 12                    STA NOTE_VECTOR_R1
+00EF8F  1  A9 EE                    LDA #>NOTE_TABLE_C5_R01
+00EF91  1  85 13                    STA NOTE_VECTOR_R1+1
+00EF93  1  A9 35                    LDA #$35
+00EF95  1  8D B9 73                 STA $73B9
+00EF98  1  4C 3D EF                   JMP NEXT_CHAR
+00EF9B  1               
+00EF9B  1  C5 2D         N_1:       CMP IS_WEAK      ;A=0
+00EF9D  1  F0 05                    BEQ SET_AY_VOL_DOWN
+00EF9F  1  C6 2D                    DEC IS_WEAK
+00EFA1  1  4C 3D EF                 JMP NEXT_CHAR
+00EFA4  1               
+00EFA4  1               SET_AY_VOL_DOWN:
+00EFA4  1               
+00EFA4  1  C5 2C                    CMP IS_WEAK_2
+00EFA6  1  F0 09                    BEQ N_3
+00EFA8  1  C6 2C                    DEC IS_WEAK_2
+00EFAA  1  A9 FF                    LDA #$FF
+00EFAC  1  85 2D                    STA IS_WEAK
+00EFAE  1  4C 3D EF                 JMP NEXT_CHAR
+00EFB1  1  A5 2E         N_3:       LDA VOL
+00EFB3  1  C9 00                    CMP #$00
+00EFB5  1  F0 86                    BEQ NEXT_CHAR
+00EFB7  1  C6 2E                    DEC VOL
+00EFB9  1  A5 2E                    LDA VOL
+00EFBB  1  8D 08 A0                 STA $A008
+00EFBE  1  4C 3D EF                 JMP NEXT_CHAR
+00EFC1  1               
+00EFC1  1                SETAY:
+00EFC1  1  A9 00                      LDA #$00
+00EFC3  1  8D 08 A0                 STA $A008
+00EFC6  1               
+00EFC6  1               
+00EFC6  1  A9 0F                      LDA #$0F
+00EFC8  1  85 2E                    STA VOL
+00EFCA  1  A9 FF                    LDA #$FF
+00EFCC  1  85 2D                    STA IS_WEAK
+00EFCE  1  A9 07                    LDA #$07
+00EFD0  1  85 2C                    STA IS_WEAK_2
+00EFD2  1               
+00EFD2  1  8A                       TXA
+00EFD3  1  A8                       TAY
+00EFD4  1               
+00EFD4  1  B1 10                    LDA (NOTE_VECTOR_R0),Y
+00EFD6  1  8D 00 A0                 STA $A000
+00EFD9  1  B1 12                    LDA (NOTE_VECTOR_R1),Y
+00EFDB  1  8D 01 A0                 STA $A001
+00EFDE  1               
+00EFDE  1  A9 3E                    LDA #$3E
+00EFE0  1  8D 07 A0                 STA $A007
+00EFE3  1  A5 2E                    LDA VOL
+00EFE5  1  8D 08 A0                 STA $A008
+00EFE8  1  4C 3D EF                 JMP NEXT_CHAR
+00EFEB  1               
+00EFEB  1               
+00EFEB  1               KEY_PRESSED:
+00EFEB  1  A2 00                     LDX #$00
+00EFED  1               
+00EFED  1               
+00EFED  1  DD C9 EE     PRESSED_1:   CMP KEY_PAD_CHAR_LOW,X
+00EFF0  1  F0 CF                     BEQ SETAY    ; X - the pressed key in C3-C5
+00EFF2  1  E8                        INX
+00EFF3  1  48                        PHA
+00EFF4  1  8A                        TXA
+00EFF5  1  C9 0C                     CMP #$0C
+00EFF7  1  F0 04                     BEQ NEXT_KEY
+00EFF9  1  68                        PLA
+00EFFA  1  4C ED EF                  JMP PRESSED_1
+00EFFD  1               NEXT_KEY:
+00EFFD  1               
+00EFFD  1  4C 3D EF                   JMP NEXT_CHAR
+00F000  1               
 00F000  1               
 00F000  1               
 00F000  1               

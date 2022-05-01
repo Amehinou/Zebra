@@ -150,7 +150,9 @@ uint8_t DL = 0x00;
 uint8_t DH = 0x00;
 uint8_t DS = 0x00;
 int loadSum = 0;
-int booster = 100;
+int booster = 10;
+
+
 
 extern "C" {
   uint16_t getpc();
@@ -291,9 +293,18 @@ extern "C" {
   void insAY(uint8_t ins) {
 
     aySerial.listen();
+    aySerial.write(0xFF);
     aySerial.write(ins);
     
   }
+
+  void setAYReg(unsigned int addr, uint8_t data) {
+    aySerial.listen();
+    aySerial.write(0xFF);
+    aySerial.write(addr - 0xA000);
+    aySerial.write(data);
+   
+    }
 
   void setFullLineColor(uint8_t data) {
         for (int i = 0; i < 20; i++){
@@ -351,11 +362,7 @@ extern "C" {
     
   }
 
-//  void setColor(uint8_t ins) {
-//    digitalWrite(5,LOW);
-//    Serial.write(ins);
-//    digitalWrite(5,HIGH);
-//  }
+
 
 }
 
@@ -409,6 +416,7 @@ void loop () {
 
 
   exec6502 (booster);
+  //Serial.print(keyboard.available( ));
   
   while (ioSerial.available()) {  // zDisk IO LOAD
       
@@ -418,7 +426,7 @@ void loop () {
         }
    while (Serial.available()){
        curkey = Serial.read();
-       exec6502(1000); //7000
+       exec6502(100); //7000
        
     }
 
@@ -433,8 +441,7 @@ void loop () {
   
   curkey = c;
   if (c == 0x09){
-    Serial.write(0x80);
-    Serial.write(0x83);
+    
     reset6502();
     curkey = 0;
   }else if(c == 0x0){
@@ -443,11 +450,6 @@ void loop () {
  
   }
 
-//if (Serial.available()) {
-//  
-//    curkey = Serial.read() & 0x7F;
-//   
-//  }
 
  
 }

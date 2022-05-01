@@ -27,11 +27,14 @@ MSGL        = $2C
 MSGH        = $2D
 COUNTER     = $2E
 
+; ZUTA
+MARK         = $0A
+OCTAVE       = $0B
+NOTE         = $0C
 
 
 
-
-           .org $ED80
+           .org $EBFB
               
 
 RESET:      CLD             ; Clear decimal arithmetic mode.
@@ -49,8 +52,7 @@ RESET:      CLD             ; Clear decimal arithmetic mode.
             LDA #>MSG1
             STA MSGH
             JSR SHWMSG      ;* Show Welcome.
-            ;LDA #$0A
-            ;JSR ECHO        ;* New line.
+           
 SOFTRESET:  LDA #$9B        ;* Auto escape.
 NOTCR:      CMP #$88        ;* "<-"? Note this was changed to $88 which is the back space key.
             BEQ BACKSPACE   ; Yes.
@@ -58,16 +60,11 @@ NOTCR:      CMP #$88        ;* "<-"? Note this was changed to $88 which is the b
             BEQ ESCAPE      ; Yes.
             INY             ; Advance text index.
             BPL NEXTCHAR    ; Auto ESC if >127.
-ESCAPE:     LDA #$52        ; "R"
-            JSR ECHO        ; Output it.
-            LDA #$65        ; "e"
-            JSR ECHO        ; Output it.
-            LDA #$61        ; "a"
-            JSR ECHO        ; Output it.
-            LDA #$64        ; "d"
-            JSR ECHO        ; Output it.
-            LDA #$79        ; "y"
-            JSR ECHO        ; Output it.
+ESCAPE:     LDA #<MSG_READY
+            STA MSGL
+            LDA #>MSG_READY
+            STA MSGH
+            JSR SHWMSG      ;* Show Ready.
 GETLINE:    LDA #$0A        ; CR.
             JSR ECHO        ; Output it.
             LDY #$01        ; Initiallize text index.
@@ -276,6 +273,7 @@ LOGO_LP:    LDA KBD
             JMP RESET
 
        
+MSG_READY: .byte "Ready",0
 
 MSG1:      .byte "** Zebra Monitor **    32K RAM System   ",0
                  ;123456789ABCDEFGHIJK123456789ABCDEFGHIJK       
@@ -290,5 +288,189 @@ MSG2:      ;.byte "^^^^^^^^^^^^^^^^^^^^"
            .byte "*      Earture     *"
            .byte "*                  *",0
            ;.byte "^^^^^^^^^^^^^^^^^^^",0
+
+                         ; C,  C_S, D, D_S, E, F, F_S,  G,   G_S,  A,  A_S,  B,
+NOTE_TABLE_C3_R00: .byte 68, 21, 232, 191, 151, 114, 79, 46, 14, 241, 213, 186    ;octave 3
+NOTE_TABLE_C4_R00: .byte 162, 138, 116, 95, 75, 57, 39, 23, 7, 248, 234, 221     ;octave 4
+NOTE_TABLE_C5_R00: .byte 209, 197, 186, 175, 165, 156, 147, 139, 131, 124, 117, 110  ;octave 5
+NOTE_TABLE_C3_R01: .byte 3, 3, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1
+NOTE_TABLE_C4_R01: .byte   1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0      
+NOTE_TABLE_C5_R01: .byte   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+KEY_PAD_CHAR: .byte 'A','W','S','E','D','F','T','G','Y','H','U','J','C','4'
+KEY_PAD_CHAR_LOW: .byte 'a','w','s','e','d','f','t','g','y','h','u','j','c','4'
+KEY_PAD_PIXEL: .byte $64,$51,$66,$53,$68,$69,$56,$6B,$58,$6D,$5A,$6F,$B8,$B9
+
+MSG_ZUTA:      .byte "** Zebra   Piano **",0
+                     ;123456789ABCDEFGHIJK123456789ABCDEFGHIJK 
+
+KEY_IS_PRESSED     = $2F
+VOL = $2E
+IS_WEAK = $2D
+IS_WEAK_2 = $2C
+NOTE_VECTOR_R0 = $10
+NOTE_VECTOR_R1 = $12
+
+ZUTA:       LDA #$FF               ;clear screen
+            STA $8020
+            LDA #<MSG_ZUTA         ;show welcome screen
+            STA MSGL
+            LDA #>MSG_ZUTA
+            STA MSGH
+            JSR SHWMSG
+
+            LDA #$FF               ;set button states
+            STA IS_WEAK
+            LDA #$00
+            STA VOL
+            LDA #$07
+            STA IS_WEAK_2
+
+            LDA #<NOTE_TABLE_C4_R00
+            STA NOTE_VECTOR_R0
+            LDA #>NOTE_TABLE_C4_R00
+            STA NOTE_VECTOR_R0+1 
+
+            LDA #<NOTE_TABLE_C4_R01
+            STA NOTE_VECTOR_R1
+            LDA #>NOTE_TABLE_C4_R01
+            STA NOTE_VECTOR_R1+1           
+            
+
+            LDX #$00
+PRINT_KEY:  LDY KEY_PAD_PIXEL,X
+            LDA KEY_PAD_CHAR,X
+            STA $7300,Y
+            INX
+            TXA
+            CMP #$0E
+            BNE PRINT_KEY
+
+            LDA #$0D
+            STA $7319
+
+            LDX #$00
+
+
+NEXT_CHAR:  
+            LDA $8001
+            CMP #$00
+            BEQ N_1
+            CMP #$33 ; octave 3
+            BEQ SET_OCTAVE_C3
+            CMP #$34 ; octave 4
+            BEQ SET_OCTAVE_C4
+            CMP #$35 ; octave 5
+            BEQ SET_OCTAVE_C5
+
+            JMP KEY_PRESSED
+
+SET_OCTAVE_C3:
+           
+             
+            LDA #<NOTE_TABLE_C3_R00
+            STA NOTE_VECTOR_R0
+            LDA #>NOTE_TABLE_C3_R00
+            STA NOTE_VECTOR_R0+1 
+
+            LDA #<NOTE_TABLE_C3_R01
+            STA NOTE_VECTOR_R1
+            LDA #>NOTE_TABLE_C3_R01
+            STA NOTE_VECTOR_R1+1  
+            LDA #$33
+            STA $73B9
+            JMP NEXT_CHAR
+SET_OCTAVE_C4:
+              LDA #<NOTE_TABLE_C4_R00
+            STA NOTE_VECTOR_R0
+            LDA #>NOTE_TABLE_C4_R00
+            STA NOTE_VECTOR_R0+1 
+
+            LDA #<NOTE_TABLE_C4_R01
+            STA NOTE_VECTOR_R1
+            LDA #>NOTE_TABLE_C4_R01
+            STA NOTE_VECTOR_R1+1  
+            LDA #$34
+            STA $73B9
+              JMP NEXT_CHAR
+
+SET_OCTAVE_C5:
+            LDA #<NOTE_TABLE_C5_R00
+            STA NOTE_VECTOR_R0
+            LDA #>NOTE_TABLE_C5_R00
+            STA NOTE_VECTOR_R0+1 
+
+            LDA #<NOTE_TABLE_C5_R01
+            STA NOTE_VECTOR_R1
+            LDA #>NOTE_TABLE_C5_R01
+            STA NOTE_VECTOR_R1+1  
+            LDA #$35
+            STA $73B9
+              JMP NEXT_CHAR
+           
+ N_1:       CMP IS_WEAK      ;A=0
+            BEQ SET_AY_VOL_DOWN
+            DEC IS_WEAK      
+            JMP NEXT_CHAR
+
+SET_AY_VOL_DOWN:  
+
+            CMP IS_WEAK_2
+            BEQ N_3
+            DEC IS_WEAK_2
+            LDA #$FF
+            STA IS_WEAK
+            JMP NEXT_CHAR
+ N_3:       LDA VOL
+            CMP #$00
+            BEQ NEXT_CHAR
+            DEC VOL
+            LDA VOL
+            STA $A008
+            JMP NEXT_CHAR
+              
+ SETAY:     
+              LDA #$00
+            STA $A008
+ 
+ 
+              LDA #$0F
+            STA VOL
+            LDA #$FF
+            STA IS_WEAK
+            LDA #$07
+            STA IS_WEAK_2
+
+            TXA
+            TAY
+
+            LDA (NOTE_VECTOR_R0),Y
+            STA $A000
+            LDA (NOTE_VECTOR_R1),Y
+            STA $A001
+            
+            LDA #$3E
+            STA $A007
+            LDA VOL
+            STA $A008
+            JMP NEXT_CHAR
+
+
+KEY_PRESSED: 
+             LDX #$00
+             
+
+PRESSED_1:   CMP KEY_PAD_CHAR_LOW,X
+             BEQ SETAY    ; X - the pressed key in C3-C5
+             INX
+             PHA
+             TXA
+             CMP #$0C
+             BEQ NEXT_KEY
+             PLA
+             JMP PRESSED_1
+NEXT_KEY:    
+
+              JMP NEXT_CHAR
+
 
 

@@ -180,7 +180,9 @@ void write6502(uint16_t address, uint8_t value) {
     setTxtModeAxis(value);
   }
 
-  
+  if ((address >= 0xA000) && (address <= 0xA00B)) {
+    setAYReg(address,value);
+  }
 
  
   
