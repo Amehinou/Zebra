@@ -1,9 +1,9 @@
 ;=====================piano=====================
 ;
-.org $BDA9
+.org $BD52
 
 TUNE_PAD: .byte 1,1,0,1,1,1
-REG_PAD:  .byte $0A,$0B,$0C
+
                          ; C,  C_S, D, D_S, E, F, F_S,  G,   G_S,  A,  A_S,  B,
 NOTE_TABLE_C3_R00: .byte 68, 21, 232, 191, 151, 114, 79, 46, 14, 241, 213, 186    ;octave 3
 NOTE_TABLE_C4_R00: .byte 162, 138, 116, 95, 75, 57, 39, 23, 7, 248, 234, 221     ;octave 4
@@ -14,7 +14,7 @@ NOTE_TABLE_C5_R01: .byte   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 ;KEY_PAD_CHAR: .byte 'A','W','S','E','D','F','T','G','Y','H','U','J','C','4'
 ;KEY_PAD_CHAR_LOW: .byte 'a','w','s','e','d','f','t','g','y','h','u','j','c','4'
 ;KEY_PAD_PIXEL: .byte $64,$51,$66,$53,$68,$69,$56,$6B,$58,$6D,$5A,$6F,$B8,$B9
-
+;REG_PAD: .byte $00,$A0,$01,$A0,$02,$A0,$03,$A0,$04,$A0,$05,$A0
 
 MSG_ZUTA:      .byte "** Zebra   Music **",0
                      ;123456789ABCDEFGHIJK123456789ABCDEFGHIJK 
@@ -27,9 +27,8 @@ NOTE_VECTOR_R0 = $10
 NOTE_VECTOR_R1 = $12
 CHANNEL_VOCTOR = $14
 
-VOL_A = $30
-VOL_B = $31
-VOL_C = $32
+VOL = $30
+
 
 A_COUNT = $16
 B_COUNT = $17
@@ -42,12 +41,16 @@ Y_NOTE_TEMP = $2D
 Y_NOTE_TEMP_1 = $20
 Y_NOTE_TEMP_2 = $24
 SHARP = $25
+COUNT_TEMP = $26
+ASCII_PATCH = $27
+FINISH_NOTE = $28
+X_TEMP = $29
 
 A_NOTE = $0A00
 B_NOTE = $0B00
 C_NOTE = $0C00
 
-VRAM_BEGIN = $734D
+VRAM_BEGIN = $7338
 MSGL = $21
 MSGH = $22
 OK_CHANNEL = $23
@@ -67,16 +70,15 @@ ZUTA:       LDA #$FF               ;clear screen
             STA IS_WEAK_2
 
             LDA #$00
-            STA VOL_A
-            STA VOL_B
-            STA VOL_C
+            STA VOL
+           
 ;===========================================
             STA A_COUNT
             STA B_COUNT
             STA C_COUNT
 ;===========================================
             STA COUNT_VECTOR
-            STA REG_VECTOR
+            STA FINISH_NOTE
 
             STA SHARP
 
@@ -97,18 +99,21 @@ ZUTA:       LDA #$FF               ;clear screen
             LDA #>A_NOTE
             STA CHANNEL_VOCTOR+1 
  
-            LDA A_COUNT
-            STA COUNT_VECTOR
+            
             LDA #<A_COUNT
             STA COUNT_VECTOR
             LDA #>A_COUNT
             STA COUNT_VECTOR+1  
 
-            LDA #$0A                 ;$0A00
-            STA REG_VECTOR+1
+       ;      LDA #<REG_PAD               
+       ;      STA REG_VECTOR
+       ;      LDA #>REG_PAD               
+       ;      STA REG_VECTOR+1
             
+            LDA #$40
+            STA ASCII_PATCH
 
-            LDX #$00
+            ;LDX #$00
             LDY #$00         
             
 GET_NOTE:   LDA $8001
@@ -124,31 +129,31 @@ GET_NOTE:   LDA $8001
             BEQ SET_CHANNEL_C
             ; CMP #'N'
             ; BEQ NEW_NOTE
-            CMP #'l'
+            CMP #'d'
             BEQ BS_BUTTON
-
+            
+            ;INX
             STA (CHANNEL_VOCTOR),Y
             STA VRAM_BEGIN,Y
             INY
-            CLC
-            STY Y_NOTE_TEMP
-            LDA #$01
-            ADC (COUNT_VECTOR),Y
-            LDY Y_NOTE_TEMP
             JMP GET_NOTE
 
 
 
 SET_CHANNEL_A: 
+            
+
+            JSR SAVE_COUNT
             LDA #$FF               ;clear screen
             STA $8020
+            LDA #'A'
+            STA $7310
             LDA #<A_NOTE
             STA CHANNEL_VOCTOR
             LDA #>A_NOTE
             STA CHANNEL_VOCTOR+1
            
-            LDA #$0A
-            STA REG_VECTOR+1
+            
 
             LDA #<A_COUNT
             STA COUNT_VECTOR
@@ -158,66 +163,86 @@ SET_CHANNEL_A:
             JMP LIST_NOTE 
 
 SET_CHANNEL_B: 
+            
+
+              JSR SAVE_COUNT
             LDA #$FF               ;clear screen
             STA $8020
+            LDA #'B'
+            STA $7310
             LDA #<B_NOTE
             STA CHANNEL_VOCTOR
             LDA #>B_NOTE
-            STA CHANNEL_VOCTOR+1 
-            LDA #$0B
-            STA REG_VECTOR+1
+            STA CHANNEL_VOCTOR+1
+            
+            
 
             LDA #<B_COUNT
             STA COUNT_VECTOR
-            LDA #>B_COUNT
-            STA COUNT_VECTOR+1 
+             LDA #>B_COUNT
+             STA COUNT_VECTOR+1 
             
             JMP LIST_NOTE 
 
-PLAY_NOTE_0: JMP PLAY_NOTE
+PLAY_NOTE_0: JMP INIT_PLAY_NOTE
 
 SET_CHANNEL_C: 
+            
+
+            JSR SAVE_COUNT
             LDA #$FF               ;clear screen
             STA $8020
+            LDA #'C'
+            STA $7310
             LDA #<C_NOTE
             STA CHANNEL_VOCTOR
             LDA #>C_NOTE
-            STA CHANNEL_VOCTOR+1 
-           LDA #$0C
-            STA REG_VECTOR+1
+            STA CHANNEL_VOCTOR+1
+            
+           
             
             LDA #<C_COUNT
             STA COUNT_VECTOR
-            LDA #>C_COUNT
-            STA COUNT_VECTOR+1 
+             LDA #>C_COUNT
+             STA COUNT_VECTOR+1 
        
             JMP LIST_NOTE  
 
+SAVE_COUNT:
+           TYA
+           LDY #$00
+           STA (COUNT_VECTOR),Y
+           RTS
 
-
-BS_BUTTON:  DEY
-            DEC COUNT_VECTOR
+BS_BUTTON:  
+            ;DEX
+             
             LDA #$20
             STA (CHANNEL_VOCTOR),Y
             STA VRAM_BEGIN,Y
+            DEY
             JMP GET_NOTE
 
-
+GET_NOTE_0: JMP GET_NOTE
 
 LIST_NOTE:  
-            LDA COUNT_VECTOR
+            LDA (COUNT_VECTOR),Y
             CMP #$00
             BEQ RE_GET_NOTE
-
+            
+            STA COUNT_TEMP
             LDY #$00
+            
+
 LIST_LOOP:  LDA (CHANNEL_VOCTOR),Y
             STA VRAM_BEGIN,Y
             INY
             TYA 
-            CMP COUNT_VECTOR
+            CMP COUNT_TEMP
             BCC LIST_LOOP
             LDA (CHANNEL_VOCTOR),Y
             STA VRAM_BEGIN,Y
+            ;LDY COUNT_TEMP
             JMP GET_NOTE
 
 
@@ -227,45 +252,53 @@ RE:
 RE_GET_NOTE:           JMP GET_NOTE
 
 
-PLAY_NOTE:  STY Y_NOTE_TEMP
-            LDA #$00
+INIT_PLAY_NOTE:  ;STY Y_NOTE_TEMP
+            LDA #$00      ; set channel A B C vol to zero
             STA $A008
             STA $A009
             STA $A00A
-            LDA #$07
+            LDA #$07      ;disable all channel
             STA $A007
+              LDA #$00
+              STA OK_CHANNEL
 
+            LDA #<A_COUNT
+            STA COUNT_VECTOR
+            LDA #>A_COUNT
+            STA COUNT_VECTOR+1 
+
+              
 GET_NEXT_CHANNEL:
+            LDY #$00
+            LDX #$00
             LDA OK_CHANNEL
             CMP #$02
-            BEQ GO_FOR_NEXT_NOTE
+            BEQ GO_FOR_NEXT_NOTE_0
 
-            JSR NEXT_CHANNEL
+            ;JSR NEXT_CHANNEL
             
-            LDA COUNT_VECTOR
-            CMP #$00
-            BEQ RE_GET_NOTE
+            LDA (COUNT_VECTOR),Y
+            CMP FINISH_NOTE
+            BEQ GET_NOTE_0
 
             ;LDY #$00
 PLAY_LOOP:  LDA (CHANNEL_VOCTOR),Y
             CMP #'#'
-            BEQ SET_PLAY_SHARP
-            CMP #$41 ;A-G
-            BCS SET_PLAY_NOTE
+            BEQ SET_SHARP
+            CMP #$41 ;A-G           
+            BCS SET_TONE           ; next channel
             CMP #'3'
-            BEQ SET_OCTAVE_C3
+            BEQ SET_OCTAVE_C3_0    
             CMP #'4'
-            BEQ SET_OCTAVE_C4
+            BEQ SET_OCTAVE_C4_0
             CMP #'5'
-            BEQ SET_OCTAVE_C5
+            BEQ SET_OCTAVE_C5_0
             CMP #'-'
-            BEQ SET_PLAY_HOLD
+            BEQ SET_PLAY_HOLD    ; next channel
             CMP #'.'
-            BEQ SET_PLAY_OFF
+            BEQ SET_PLAY_OFF     ; next channel
 
             JMP NEXT_CHANNEL
-
-
 
             INY
             TYA 
@@ -273,48 +306,93 @@ PLAY_LOOP:  LDA (CHANNEL_VOCTOR),Y
             BCC PLAY_LOOP
 
             INC OK_CHANNEL
-            JMP PLAY_NOTE
+            JMP INIT_PLAY_NOTE
 
-SET_PLAY_NOTE:
-            STA Y_NOTE_TEMP
-            JMP PLAY_LOOP
+SET_TONE:   STY Y_NOTE_TEMP_1
+            LDA #$0F
+            LDX OK_CHANNEL
+            STA VOL,X
 
-
-NEXT_CHANNEL:
-            STY Y_NOTE_TEMP_1
+            LDX X_TEMP
+            
+            SEC
+            SBC ASCII_PATCH     ; the org TUNE
+                       
+            TAY
+            LDA TUNE_PAD,Y
             CLC
-            LDA #$01
-            ADC CHANNEL_VOCTOR+1
-            STA CHANNEL_VOCTOR+1
-            INC OK_CHANNEL
-            LDY OK_CHANNEL
-            LDA ($06),Y
-            STA REG_VECTOR+1
+            ADC SHARP
+            TAY                 ;Y - the TUNE
+
+            LDA (NOTE_VECTOR_R0),Y ; SET AY TUNE
+            STA $A000,X
+            INX
+            LDA (NOTE_VECTOR_R1),Y
+            STA $A000,X
+            INX
+            STX X_TEMP
+
             LDY Y_NOTE_TEMP_1
-            
-            RTI
+            INY
+            JMP NEXT_CHANNEL
 
+GO_FOR_NEXT_NOTE_0: JMP GO_FOR_NEXT_NOTE
 
-SET_PLAY_HOLD:
-            INC OK_CHANNEL
-            
-
-
-SET_PLAY_OFF:
-
-SET_PLAY_SHARP:
+SET_SHARP:
             LDA #$01
             STA SHARP
             INY
             JMP PLAY_LOOP
 
+NEXT_CHANNEL:
+            ;STY Y_NOTE_TEMP_1
+            LDA #$00
+            STA SHARP
+            
+
+            CLC
+            LDA #$01
+            ADC CHANNEL_VOCTOR+1
+            STA CHANNEL_VOCTOR+1   ;next channel 0A 0B 0C
+            INC OK_CHANNEL
+           
+        
+            
+            JMP GET_NEXT_CHANNEL
+
+
+SET_PLAY_HOLD:
+            INC X_TEMP
+            INC X_TEMP
+            INC OK_CHANNEL
+            JMP NEXT_CHANNEL
+            
+
+
+SET_PLAY_OFF:
+            INC X_TEMP
+            INC X_TEMP
+            LDA #$00
+            LDX OK_CHANNEL
+            STA VOL,X
+            INC OK_CHANNEL
+            JMP NEXT_CHANNEL
+
+SET_OCTAVE_C3_0: JMP SET_OCTAVE_C3
+SET_OCTAVE_C4_0: JMP SET_OCTAVE_C4
+SET_OCTAVE_C5_0: JMP SET_OCTAVE_C5
+
 
 GO_FOR_NEXT_NOTE:
-            JSR SET_VOL
-            INY 
-            LDA #00
-            STA OK_CHANNEL
-            JMP GET_NEXT_CHANNEL
+              LDA #$00
+              STA X_TEMP
+
+              JSR SET_VOL
+            
+              INC FINISH_NOTE
+              LDA #00
+              STA OK_CHANNEL
+              JMP GET_NEXT_CHANNEL
             
 
 
@@ -335,7 +413,7 @@ SET_OCTAVE_C3:
             STA NOTE_VECTOR_R1+1  
             ; LDA #$33
             ; STA $73B9
-            JMP TO_SET_AY_NOTE
+            JMP PLAY_LOOP
 SET_OCTAVE_C4:
               LDA #<NOTE_TABLE_C4_R00
             STA NOTE_VECTOR_R0
@@ -348,7 +426,7 @@ SET_OCTAVE_C4:
             STA NOTE_VECTOR_R1+1  
             ; LDA #$34
             ; STA $73B9
-              JMP TO_SET_AY_NOTE
+              JMP PLAY_LOOP
 SET_OCTAVE_C5:
             LDA #<NOTE_TABLE_C5_R00
             STA NOTE_VECTOR_R0
@@ -361,20 +439,23 @@ SET_OCTAVE_C5:
             STA NOTE_VECTOR_R1+1  
             ; LDA #$35
             ; STA $73B9
-              JMP TO_SET_AY_NOTE
+              JMP PLAY_LOOP
 
-TO_SET_AY_NOTE:
+
 
 
 
 SET_VOL:
-            LDA VOL_A
+            LDA VOL
             STA $A008
-            LDA VOL_B
-            STA $A008
-            LDA VOL_C
-            STA $A008
+            LDA VOL+1
+            STA $A009
+            LDA VOL+2
+            STA $A00A
+            LDA #$08
+            STA $A007
             JSR DELAY
+            RTS
 
 DELAY: 
        LDA #$00
@@ -388,7 +469,7 @@ DELAY:
        DEC IS_WEAK_2
        JMP DELAY
 OVER_DELAY:
-       RTI
+       RTS
 
 
 
