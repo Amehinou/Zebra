@@ -30,7 +30,7 @@ BRKAS2 = 1		; if 1, BRK will assemble to two $00 bytes
 
 	.if INROM	
 ;MONTOR	=ESCAPE 
-MONTOR = $EBFB  ;==================================================================================================zebra monitor
+MONTOR = $EBF1  ;==================================================================================================zebra monitor
 	.ELSE
 MONTOR	=$FF1F
 GETLINE	=MONTOR		; doesn't work in RAM version because needs adjusted monitor code

@@ -34,7 +34,7 @@ NOTE         = $0C
 
 
 
-           .org $EBFB
+           .org $EBF1
               
 
 RESET:      CLD             ; Clear decimal arithmetic mode.
@@ -111,7 +111,7 @@ NEXTITEM:   LDA IN,Y        ; Get charcter.
             BEQ LOGO
             CMP #'M'+$80   ; msbasic
             BEQ MSBASIC
-            CMP #'X'+$80   ; user program 
+            CMP #'P'+$80   ; user program 
             BEQ USER_FUNC
             CMP #'V'+$80   ; color
             BEQ MY_COLOR
@@ -232,7 +232,7 @@ ZEBRA_CLS1:
             
 USER_FUNC1:
             
-            JMP  $9000
+            JSR  ZUTA
        
 
 MY_COLOR1:
@@ -267,6 +267,12 @@ LOGO1:      LDA #$FF
             LDA #>MSG2
             STA MSGH
             JSR SHWMSG
+            LDA #$12
+            STA $7354
+            LDA #$13
+            STA $7356
+            LDA #$14
+            STA $7358
 LOGO_LP:    LDA KBD
             CMP #$00
             BEQ LOGO_LP
@@ -281,8 +287,8 @@ MSG2:      ;.byte "^^^^^^^^^^^^^^^^^^^^"
            .byte "*       (>_^)      *"
            .byte "*                  *"
            .byte "*       Zebra      *"
-           .byte "*       v1.00      *"
            .byte "*                  *"
+           .byte "*       v1.00      *"
            .byte "* HomebrewComputer *"
            .byte "*                  *"
            .byte "*      Earture     *"
@@ -429,8 +435,8 @@ SET_AY_VOL_DOWN:
             JMP NEXT_CHAR
               
  SETAY:     
-              LDA #$00
-            STA $A008
+            ;LDA #$00
+            ;STA $A008
  
  
               LDA #$0F

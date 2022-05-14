@@ -51,7 +51,7 @@ extern void setRAM(unsigned int addr, uint8_t data);
 #define GETC           0x8001
 #define PUTC           0x8002
 
-#define pointROM        0xC000
+#define pointROM        0xBDA9
 #define RAND        0x8003
 #define AY        0x8004
 #define zDisk        0x8005
