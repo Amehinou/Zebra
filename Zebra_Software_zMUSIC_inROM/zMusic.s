@@ -1,6 +1,6 @@
 ;=====================piano=====================
 ;
-.org $BD52
+.org $BD50
 
 TUNE_PAD: .byte 1,1,0,1,1,1
 
@@ -298,23 +298,23 @@ PLAY_LOOP:  LDA (CHANNEL_VOCTOR),Y
             CMP #'.'
             BEQ SET_PLAY_OFF     ; next channel
 
-            JMP NEXT_CHANNEL
+            ;JMP NEXT_CHANNEL
 
             INY
             TYA 
-            CMP COUNT_VECTOR
-            BCC PLAY_LOOP
-
-            INC OK_CHANNEL
-            JMP INIT_PLAY_NOTE
+            CMP FINISH_NOTE
+            BEQ GET_NOTE_0
+            JMP PLAY_LOOP
+           
 
 SET_TONE:   STY Y_NOTE_TEMP_1
+            PHA
             LDA #$0F
             LDX OK_CHANNEL
             STA VOL,X
 
             LDX X_TEMP
-            
+            PLA
             SEC
             SBC ASCII_PATCH     ; the org TUNE
                        
@@ -454,6 +454,10 @@ SET_VOL:
             STA $A00A
             LDA #$08
             STA $A007
+
+            LDA #$FF
+            STA $8020
+
             JSR DELAY
             RTS
 
