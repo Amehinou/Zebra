@@ -9,7 +9,7 @@
  * details found in the Arduino Forum
  * http://forum.arduino.cc/index.php?topic=193216.0
  * 
- * modified by Mario Keller 2016 for MOUSE2Go
+ * modified by Earture 2022 for Zebra
  * 
  */
 
