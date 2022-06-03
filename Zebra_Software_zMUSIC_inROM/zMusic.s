@@ -302,6 +302,7 @@ PLAY_LOOP:
             LDA #'S'  ; debug
             STA $731E
             INC SUM_CHAR     ;already palyed char
+            LDY #$00
             LDA (COUNT_VECTOR),Y
             CMP SUM_CHAR
             BCC RE_GET_NOTE     ;end play
