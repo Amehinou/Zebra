@@ -1,6 +1,6 @@
 ;=====================piano=====================
 ;
-.org $BD25
+.org $BD01
 
 TUNE_PAD: .byte 0,1,2,2,3,4,5
 
@@ -28,7 +28,7 @@ NOTE_VECTOR_R1 = $12
 CHANNEL_VOCTOR = $14
 
 VOL = $30
-
+Y_EACH_CHANNEL_BEGIN = $35
 
 A_COUNT = $16
 B_COUNT = $17
@@ -64,7 +64,7 @@ ZUTA:       LDA #$FF               ;clear screen
             STA MSGH
             JSR SHWMSG
 
-            LDA #$90               ;set button states
+            LDA #$20               ;set button states
             STA IS_WEAK
             LDA #$FF
             STA IS_WEAK_2
@@ -79,7 +79,7 @@ ZUTA:       LDA #$FF               ;clear screen
 ;===========================================
             STA COUNT_VECTOR
             STA X_TEMP
-
+            STA SUM_CHAR
             STA SHARP
 
            
@@ -233,7 +233,7 @@ BS_BUTTON:
             ;DEY
             JMP GET_NOTE
 
-GET_NOTE_0: JMP GET_NOTE
+
 
 LIST_NOTE:  
             LDA (COUNT_VECTOR),Y
@@ -243,6 +243,7 @@ LIST_NOTE:
             STA COUNT_TEMP
             LDY #$00
             
+
 
 LIST_LOOP:  LDA (CHANNEL_VOCTOR),Y
             STA VRAM_BEGIN,Y
@@ -254,13 +255,15 @@ LIST_LOOP:  LDA (CHANNEL_VOCTOR),Y
             ;STA VRAM_BEGIN,Y
             ;INY
             ;LDY COUNT_TEMP
-            JMP GET_NOTE
-
+GET_NOTE_0:            JMP GET_NOTE
 
 
 RE:
             LDY Y_NOTE_TEMP
-RE_GET_NOTE:           JMP GET_NOTE
+RE_GET_NOTE:          
+LDA #'N'  ; debug
+            STA $731E
+ JMP GET_NOTE
 
 
 INIT_PLAY_NOTE:  ;STY Y_NOTE_TEMP
@@ -273,31 +276,40 @@ INIT_PLAY_NOTE:  ;STY Y_NOTE_TEMP
             LDA #$00
             STA OK_CHANNEL
             STA Y_EACH_CHANNEL_BEGIN
-            STA X_TEMP
+            STA X_TEMP     ;AY TUNE register num
 
             LDA #<A_COUNT  ;only A COUNT is use for play
             STA COUNT_VECTOR
             LDA #>A_COUNT
             STA COUNT_VECTOR+1 
 
+            LDA #'1'  ; debug
+            STA $731E
+            
               
 GET_NEXT_CHANNEL:
             LDY #$00
             LDX #$00
             LDA OK_CHANNEL
-            CMP #$03
-            BEQ GO_FOR_NEXT_NOTE_0
-
+            CMP #$03         
+            BEQ GO_FOR_NEXT_NOTE_0    ;next note update Y_EACH_CHANNEL_BEGIN
+    
             ;LDY Y_EACH_CHANNEL_BEGIN
 
             ;JSR NEXT_CHANNEL
             
-PLAY_LOOP:  LDA (COUNT_VECTOR),Y
-            STA SUM_CHAR
+PLAY_LOOP: 
+            LDA #'S'  ; debug
+            STA $731E
+            INC SUM_CHAR     ;already palyed char
+            LDA (COUNT_VECTOR),Y
+            CMP SUM_CHAR
+            BCC RE_GET_NOTE     ;end play
             ; CMP FINISH_CHAR
             ; BEQ GET_NOTE_0
             LDY Y_EACH_CHANNEL_BEGIN   ;first time play Y=0 
             ;LDY #$00
+           
 FINISH_SET_OCTAVE: 
 
             LDA (CHANNEL_VOCTOR),Y
@@ -325,18 +337,19 @@ FINISH_SET_OCTAVE:
             JMP PLAY_LOOP
            
 
-SET_TONE:   STY Y_EACH_CHANNEL_BEGIN  ;backup the Y 
+SET_TONE:   STY Y_NOTE_TEMP_2  ;backup the Y 
             PHA                 ; A -> NOTE
             LDA #$0F
             LDX OK_CHANNEL
             STA VOL,X            ;set correct Channel Vol
+            PLA                  ;recover note
             LDX X_TEMP
-            PLA
+            
             SEC
             SBC #$41     ; the org TUNE
                        
             TAY
-            LDA TUNE_PAD,Y
+            LDA TUNE_PAD,Y   ;#
             CLC
             ADC SHARP
             TAY                 ;Y - the TUNE
@@ -361,13 +374,13 @@ SET_PLAY_OFF:
             LDX OK_CHANNEL
             LDA #$00
             STA VOL,X
-            INY
+            ;INY
             JMP NEXT_CHANNEL
             
 
 SET_SHARP:
-            LDA #'S'   ;debug
-            STA $7313
+            ; LDA #'S'   ;debug
+            ; STA $7313
 
             LDA #$01
             STA SHARP
@@ -394,7 +407,8 @@ NEXT_CHANNEL:
 
             INC OK_CHANNEL
            
-        
+           LDA #'P'  ; debug
+            STA $731E
             
             JMP GET_NEXT_CHANNEL
 
@@ -412,14 +426,14 @@ SET_OCTAVE_C3_0: JMP SET_OCTAVE_C3
 SET_OCTAVE_C4_0: JMP SET_OCTAVE_C4
 SET_OCTAVE_C5_0: JMP SET_OCTAVE_C5
 
-SET_PLAY_OFF:
-            INC X_TEMP
-            INC X_TEMP
-            LDA #$00
-            LDX OK_CHANNEL
-            STA VOL,X
-            INC OK_CHANNEL
-            JMP NEXT_CHANNEL
+; SET_PLAY_OFF:
+;             INC X_TEMP
+;             INC X_TEMP
+;             LDA #$00
+;             LDX OK_CHANNEL
+;             STA VOL,X
+;             INC OK_CHANNEL
+;             JMP NEXT_CHANNEL
 
 
 
@@ -429,11 +443,20 @@ GO_FOR_NEXT_NOTE:
               STA X_TEMP
 
               JSR SET_VOL
-            
+              ;BRK ;======================================================================================
               ;INC FINISH_CHAR
               LDA #00
               STA OK_CHANNEL
-              JMP GET_NEXT_CHANNEL
+
+              LDA #$0A
+              STA CHANNEL_VOCTOR+1
+
+              INC Y_EACH_CHANNEL_BEGIN
+
+              LDA #'R'  ; debug
+              STA $731E
+              LDY #$00
+              JMP PLAY_LOOP
             
 
 
@@ -442,7 +465,9 @@ GO_FOR_NEXT_NOTE:
 
 SET_OCTAVE_C3:
            
-             
+            LDA #'3'   ;debug
+            STA $7318
+
             LDA #<NOTE_TABLE_C3_R00
             STA NOTE_VECTOR_R0
             LDA #>NOTE_TABLE_C3_R00
@@ -458,6 +483,9 @@ SET_OCTAVE_C3:
             ;INC FINISH_CHAR
             JMP FINISH_SET_OCTAVE
 SET_OCTAVE_C4:
+
+             LDA #'4'   ;debug
+            STA $7319
               LDA #<NOTE_TABLE_C4_R00
             STA NOTE_VECTOR_R0
             LDA #>NOTE_TABLE_C4_R00
@@ -473,6 +501,8 @@ SET_OCTAVE_C4:
             ;INC FINISH_CHAR
               JMP FINISH_SET_OCTAVE
 SET_OCTAVE_C5:
+            LDA #'5'   ;debug
+            STA $731A
             LDA #<NOTE_TABLE_C5_R00
             STA NOTE_VECTOR_R0
             LDA #>NOTE_TABLE_C5_R00
@@ -499,7 +529,7 @@ SET_VOL:
             STA $A009
             LDA VOL+2
             STA $A00A
-            LDA #$08
+            LDA #$F8
             STA $A007
 
             LDA #'V'
@@ -508,16 +538,23 @@ SET_VOL:
             JSR DELAY
             RTS
 
+            ;BRK  ;==============================================================BRK
+
 DELAY: 
        LDA #$00
        CMP IS_WEAK
-       DEC IS_WEAK
        BEQ OVER_DELAY
+       ;DEC IS_WEAK
        
  DELAY_1:    
        CMP IS_WEAK_2
-       BEQ DELAY
+       BEQ DELAY_2
        DEC IS_WEAK_2
+       JMP DELAY_1
+DELAY_2:
+       LDA #$FF
+       STA IS_WEAK_2
+       DEC IS_WEAK
        JMP DELAY
 OVER_DELAY:
        RTS
