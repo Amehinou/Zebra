@@ -1,6 +1,6 @@
 ;=====================piano=====================
 ;
-.org $BD01
+.org $BCFF
 
 TUNE_PAD: .byte 0,1,2,2,3,4,5
 
@@ -338,7 +338,7 @@ FINISH_SET_OCTAVE:
             JMP PLAY_LOOP
            
 
-SET_TONE:   STY Y_NOTE_TEMP_2  ;backup the Y 
+SET_TONE:   STY Y_EACH_CHANNEL_BEGIN  ;backup the Y 
             PHA                 ; A -> NOTE
             LDA #$0F
             LDX OK_CHANNEL
@@ -455,7 +455,7 @@ GO_FOR_NEXT_NOTE:
               INC Y_EACH_CHANNEL_BEGIN
 
               LDA #'R'  ; debug
-              STA $731E
+              STA $7320
               LDY #$00
               JMP PLAY_LOOP
             

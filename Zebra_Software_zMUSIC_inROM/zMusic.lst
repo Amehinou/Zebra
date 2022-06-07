@@ -4,326 +4,327 @@ Current file: zMusic.s
 
 000000r 1               ;=====================piano=====================
 000000r 1               ;
-000000r 1               .org $BD01
-00BD01  1               
-00BD01  1  00 01 02 02  TUNE_PAD: .byte 0,1,2,2,3,4,5
-00BD05  1  03 04 05     
-00BD08  1               
-00BD08  1                                        ; C,  C_S, D, D_S, E, F, F_S,  G,   G_S,  A,  A_S,  B,
-00BD08  1  F1 D5 BA 44  NOTE_TABLE_C3_R00: .byte 241, 213, 186,68, 21, 232, 191, 151, 114, 79, 46, 14    ;octave 3
-00BD0C  1  15 E8 BF 97  
-00BD10  1  72 4F 2E 0E  
-00BD14  1  F8 EA DD A2  NOTE_TABLE_C4_R00: .byte 248, 234, 221,162, 138, 116, 95, 75, 57, 39, 23, 7     ;octave 4
-00BD18  1  8A 74 5F 4B  
-00BD1C  1  39 27 17 07  
-00BD20  1  7C 75 6E D1  NOTE_TABLE_C5_R00: .byte 124, 117, 110,209, 197, 186, 175, 165, 156, 147, 139, 131   ;octave 5
-00BD24  1  C5 BA AF A5  
-00BD28  1  9C 93 8B 83  
-00BD2C  1  03 03 02 02  NOTE_TABLE_C3_R01: .byte 3, 3, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1
-00BD30  1  02 02 02 02  
-00BD34  1  02 01 01 01  
-00BD38  1  01 01 01 01  NOTE_TABLE_C4_R01: .byte   1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0
-00BD3C  1  01 01 01 01  
-00BD40  1  01 00 00 00  
-00BD44  1  00 00 00 00  NOTE_TABLE_C5_R01: .byte   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-00BD48  1  00 00 00 00  
-00BD4C  1  00 00 00 00  
-00BD50  1               ;KEY_PAD_CHAR: .byte 'A','W','S','E','D','F','T','G','Y','H','U','J','C','4'
-00BD50  1               ;KEY_PAD_CHAR_LOW: .byte 'a','w','s','e','d','f','t','g','y','h','u','j','c','4'
-00BD50  1               ;KEY_PAD_PIXEL: .byte $64,$51,$66,$53,$68,$69,$56,$6B,$58,$6D,$5A,$6F,$B8,$B9
-00BD50  1               ;REG_PAD: .byte $00,$A0,$01,$A0,$02,$A0,$03,$A0,$04,$A0,$05,$A0
-00BD50  1               
-00BD50  1  2A 2A 20 5A  MSG_ZUTA:      .byte "** Zebra   Music **",0
-00BD54  1  65 62 72 61  
-00BD58  1  20 20 20 4D  
-00BD64  1                                    ;123456789ABCDEFGHIJK123456789ABCDEFGHIJK
-00BD64  1               
-00BD64  1               KEY_IS_PRESSED     = $2F
-00BD64  1               
-00BD64  1               IS_WEAK = $2D
-00BD64  1               IS_WEAK_2 = $2C
-00BD64  1               NOTE_VECTOR_R0 = $10
-00BD64  1               NOTE_VECTOR_R1 = $12
-00BD64  1               CHANNEL_VOCTOR = $14
-00BD64  1               
-00BD64  1               VOL = $30
-00BD64  1               Y_EACH_CHANNEL_BEGIN = $35
-00BD64  1               
-00BD64  1               A_COUNT = $16
-00BD64  1               B_COUNT = $17
-00BD64  1               C_COUNT = $18
-00BD64  1               COUNT_VECTOR = $19
-00BD64  1               
-00BD64  1               REG_VECTOR = $2B
-00BD64  1               
-00BD64  1               Y_NOTE_TEMP = $2D
-00BD64  1               Y_NOTE_TEMP_1 = $20
-00BD64  1               Y_NOTE_TEMP_2 = $24
-00BD64  1               SHARP = $25
-00BD64  1               COUNT_TEMP = $26
-00BD64  1               ASCII_PATCH = $27
-00BD64  1               SUM_CHAR = $28
-00BD64  1               X_TEMP = $29
-00BD64  1               
-00BD64  1               A_NOTE = $0A00
-00BD64  1               B_NOTE = $0B00
-00BD64  1               C_NOTE = $0C00
-00BD64  1               
-00BD64  1               VRAM_BEGIN = $7338
-00BD64  1               MSGL = $21
-00BD64  1               MSGH = $22
-00BD64  1               OK_CHANNEL = $23
-00BD64  1               
-00BD64  1               
-00BD64  1  A9 FF        ZUTA:       LDA #$FF               ;clear screen
-00BD66  1  8D 20 80                 STA $8020
-00BD69  1  A9 50                    LDA #<MSG_ZUTA         ;show welcome screen
-00BD6B  1  85 21                    STA MSGL
-00BD6D  1  A9 BD                    LDA #>MSG_ZUTA
-00BD6F  1  85 22                    STA MSGH
-00BD71  1  20 EF BF                 JSR SHWMSG
-00BD74  1               
-00BD74  1  A9 20                    LDA #$20               ;set button states
-00BD76  1  85 2D                    STA IS_WEAK
-00BD78  1  A9 FF                    LDA #$FF
-00BD7A  1  85 2C                    STA IS_WEAK_2
-00BD7C  1               
-00BD7C  1  A9 00                    LDA #$00
-00BD7E  1  85 30                    STA VOL
-00BD80  1               
-00BD80  1               ;===========================================
-00BD80  1  85 16                    STA A_COUNT
-00BD82  1  85 17                    STA B_COUNT
-00BD84  1  85 18                    STA C_COUNT
-00BD86  1               ;===========================================
-00BD86  1  85 19                    STA COUNT_VECTOR
-00BD88  1  85 29                    STA X_TEMP
-00BD8A  1  85 28                    STA SUM_CHAR
-00BD8C  1  85 25                    STA SHARP
-00BD8E  1               
-00BD8E  1               
-00BD8E  1               
-00BD8E  1  A9 14                    LDA #<NOTE_TABLE_C4_R00
-00BD90  1  85 10                    STA NOTE_VECTOR_R0
-00BD92  1  A9 BD                    LDA #>NOTE_TABLE_C4_R00
-00BD94  1  85 11                    STA NOTE_VECTOR_R0+1
-00BD96  1               
-00BD96  1  A9 38                    LDA #<NOTE_TABLE_C4_R01
-00BD98  1  85 12                    STA NOTE_VECTOR_R1
-00BD9A  1  A9 BD                    LDA #>NOTE_TABLE_C4_R01
-00BD9C  1  85 13                    STA NOTE_VECTOR_R1+1
-00BD9E  1               
-00BD9E  1  A9 00                    LDA #<A_NOTE            ;default A Channel editer
-00BDA0  1  85 14                    STA CHANNEL_VOCTOR
-00BDA2  1  A9 0A                    LDA #>A_NOTE
-00BDA4  1  85 15                    STA CHANNEL_VOCTOR+1
-00BDA6  1               
-00BDA6  1               
-00BDA6  1  A9 16                    LDA #<A_COUNT
-00BDA8  1  85 19                    STA COUNT_VECTOR
-00BDAA  1  A9 00                    LDA #>A_COUNT
-00BDAC  1  85 1A                    STA COUNT_VECTOR+1
-00BDAE  1               
-00BDAE  1                      ;      LDA #<REG_PAD
-00BDAE  1                      ;      STA REG_VECTOR
-00BDAE  1                      ;      LDA #>REG_PAD
-00BDAE  1                      ;      STA REG_VECTOR+1
-00BDAE  1               
-00BDAE  1  A9 40                    LDA #$40
-00BDB0  1  85 27                    STA ASCII_PATCH
+000000r 1               .org $BCFF
+00BCFF  1               
+00BCFF  1  00 01 02 02  TUNE_PAD: .byte 0,1,2,2,3,4,5
+00BD03  1  03 04 05     
+00BD06  1               
+00BD06  1                                        ; C,  C_S, D, D_S, E, F, F_S,  G,   G_S,  A,  A_S,  B,
+00BD06  1  F1 D5 BA 44  NOTE_TABLE_C3_R00: .byte 241, 213, 186,68, 21, 232, 191, 151, 114, 79, 46, 14    ;octave 3
+00BD0A  1  15 E8 BF 97  
+00BD0E  1  72 4F 2E 0E  
+00BD12  1  F8 EA DD A2  NOTE_TABLE_C4_R00: .byte 248, 234, 221,162, 138, 116, 95, 75, 57, 39, 23, 7     ;octave 4
+00BD16  1  8A 74 5F 4B  
+00BD1A  1  39 27 17 07  
+00BD1E  1  7C 75 6E D1  NOTE_TABLE_C5_R00: .byte 124, 117, 110,209, 197, 186, 175, 165, 156, 147, 139, 131   ;octave 5
+00BD22  1  C5 BA AF A5  
+00BD26  1  9C 93 8B 83  
+00BD2A  1  03 03 02 02  NOTE_TABLE_C3_R01: .byte 3, 3, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1
+00BD2E  1  02 02 02 02  
+00BD32  1  02 01 01 01  
+00BD36  1  01 01 01 01  NOTE_TABLE_C4_R01: .byte   1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0
+00BD3A  1  01 01 01 01  
+00BD3E  1  01 00 00 00  
+00BD42  1  00 00 00 00  NOTE_TABLE_C5_R01: .byte   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+00BD46  1  00 00 00 00  
+00BD4A  1  00 00 00 00  
+00BD4E  1               ;KEY_PAD_CHAR: .byte 'A','W','S','E','D','F','T','G','Y','H','U','J','C','4'
+00BD4E  1               ;KEY_PAD_CHAR_LOW: .byte 'a','w','s','e','d','f','t','g','y','h','u','j','c','4'
+00BD4E  1               ;KEY_PAD_PIXEL: .byte $64,$51,$66,$53,$68,$69,$56,$6B,$58,$6D,$5A,$6F,$B8,$B9
+00BD4E  1               ;REG_PAD: .byte $00,$A0,$01,$A0,$02,$A0,$03,$A0,$04,$A0,$05,$A0
+00BD4E  1               
+00BD4E  1  2A 2A 20 5A  MSG_ZUTA:      .byte "** Zebra   Music **",0
+00BD52  1  65 62 72 61  
+00BD56  1  20 20 20 4D  
+00BD62  1                                    ;123456789ABCDEFGHIJK123456789ABCDEFGHIJK
+00BD62  1               
+00BD62  1               KEY_IS_PRESSED     = $2F
+00BD62  1               
+00BD62  1               IS_WEAK = $2D
+00BD62  1               IS_WEAK_2 = $2C
+00BD62  1               NOTE_VECTOR_R0 = $10
+00BD62  1               NOTE_VECTOR_R1 = $12
+00BD62  1               CHANNEL_VOCTOR = $14
+00BD62  1               
+00BD62  1               VOL = $30
+00BD62  1               Y_EACH_CHANNEL_BEGIN = $35
+00BD62  1               
+00BD62  1               A_COUNT = $16
+00BD62  1               B_COUNT = $17
+00BD62  1               C_COUNT = $18
+00BD62  1               COUNT_VECTOR = $19
+00BD62  1               
+00BD62  1               REG_VECTOR = $2B
+00BD62  1               
+00BD62  1               Y_NOTE_TEMP = $2D
+00BD62  1               Y_NOTE_TEMP_1 = $20
+00BD62  1               Y_NOTE_TEMP_2 = $24
+00BD62  1               SHARP = $25
+00BD62  1               COUNT_TEMP = $26
+00BD62  1               ASCII_PATCH = $27
+00BD62  1               SUM_CHAR = $28
+00BD62  1               X_TEMP = $29
+00BD62  1               
+00BD62  1               A_NOTE = $0A00
+00BD62  1               B_NOTE = $0B00
+00BD62  1               C_NOTE = $0C00
+00BD62  1               
+00BD62  1               VRAM_BEGIN = $7338
+00BD62  1               MSGL = $21
+00BD62  1               MSGH = $22
+00BD62  1               OK_CHANNEL = $23
+00BD62  1               
+00BD62  1               
+00BD62  1  A9 FF        ZUTA:       LDA #$FF               ;clear screen
+00BD64  1  8D 20 80                 STA $8020
+00BD67  1  A9 4E                    LDA #<MSG_ZUTA         ;show welcome screen
+00BD69  1  85 21                    STA MSGL
+00BD6B  1  A9 BD                    LDA #>MSG_ZUTA
+00BD6D  1  85 22                    STA MSGH
+00BD6F  1  20 EF BF                 JSR SHWMSG
+00BD72  1               
+00BD72  1  A9 20                    LDA #$20               ;set button states
+00BD74  1  85 2D                    STA IS_WEAK
+00BD76  1  A9 FF                    LDA #$FF
+00BD78  1  85 2C                    STA IS_WEAK_2
+00BD7A  1               
+00BD7A  1  A9 00                    LDA #$00
+00BD7C  1  85 30                    STA VOL
+00BD7E  1               
+00BD7E  1               ;===========================================
+00BD7E  1  85 16                    STA A_COUNT
+00BD80  1  85 17                    STA B_COUNT
+00BD82  1  85 18                    STA C_COUNT
+00BD84  1               ;===========================================
+00BD84  1  85 19                    STA COUNT_VECTOR
+00BD86  1  85 29                    STA X_TEMP
+00BD88  1  85 28                    STA SUM_CHAR
+00BD8A  1  85 25                    STA SHARP
+00BD8C  1               
+00BD8C  1               
+00BD8C  1               
+00BD8C  1  A9 12                    LDA #<NOTE_TABLE_C4_R00
+00BD8E  1  85 10                    STA NOTE_VECTOR_R0
+00BD90  1  A9 BD                    LDA #>NOTE_TABLE_C4_R00
+00BD92  1  85 11                    STA NOTE_VECTOR_R0+1
+00BD94  1               
+00BD94  1  A9 36                    LDA #<NOTE_TABLE_C4_R01
+00BD96  1  85 12                    STA NOTE_VECTOR_R1
+00BD98  1  A9 BD                    LDA #>NOTE_TABLE_C4_R01
+00BD9A  1  85 13                    STA NOTE_VECTOR_R1+1
+00BD9C  1               
+00BD9C  1  A9 00                    LDA #<A_NOTE            ;default A Channel editer
+00BD9E  1  85 14                    STA CHANNEL_VOCTOR
+00BDA0  1  A9 0A                    LDA #>A_NOTE
+00BDA2  1  85 15                    STA CHANNEL_VOCTOR+1
+00BDA4  1               
+00BDA4  1               
+00BDA4  1  A9 16                    LDA #<A_COUNT
+00BDA6  1  85 19                    STA COUNT_VECTOR
+00BDA8  1  A9 00                    LDA #>A_COUNT
+00BDAA  1  85 1A                    STA COUNT_VECTOR+1
+00BDAC  1               
+00BDAC  1                      ;      LDA #<REG_PAD
+00BDAC  1                      ;      STA REG_VECTOR
+00BDAC  1                      ;      LDA #>REG_PAD
+00BDAC  1                      ;      STA REG_VECTOR+1
+00BDAC  1               
+00BDAC  1  A9 40                    LDA #$40
+00BDAE  1  85 27                    STA ASCII_PATCH
+00BDB0  1               
+00BDB0  1                           ;LDX #$00
+00BDB0  1  A0 00                    LDY #$00
 00BDB2  1               
-00BDB2  1                           ;LDX #$00
-00BDB2  1  A0 00                    LDY #$00
-00BDB4  1               
-00BDB4  1  AD 01 80     GET_NOTE:   LDA $8001
-00BDB7  1  C9 00                    CMP #$00
-00BDB9  1  F0 F9                    BEQ GET_NOTE
-00BDBB  1  C9 70                    CMP #'p'
-00BDBD  1  F0 67                    BEQ PLAY_NOTE_0
-00BDBF  1  C9 38                    CMP #'8'
-00BDC1  1  F0 15                    BEQ SET_CHANNEL_A
-00BDC3  1  C9 39                    CMP #'9'
-00BDC5  1  F0 38                    BEQ SET_CHANNEL_B
-00BDC7  1  C9 30                    CMP #'0'
-00BDC9  1  F0 61                    BEQ SET_CHANNEL_C
-00BDCB  1                           ; CMP #'N'
-00BDCB  1                           ; BEQ NEW_NOTE
-00BDCB  1  C9 64                    CMP #'d'
-00BDCD  1  F0 5A                    BEQ BS_BUTTON_0
-00BDCF  1               
-00BDCF  1                           ;INX
-00BDCF  1  91 14                    STA (CHANNEL_VOCTOR),Y
-00BDD1  1  99 38 73                 STA VRAM_BEGIN,Y
-00BDD4  1  C8                       INY
-00BDD5  1  4C B4 BD                 JMP GET_NOTE
-00BDD8  1               
-00BDD8  1               
-00BDD8  1               
-00BDD8  1               SET_CHANNEL_A:
-00BDD8  1  A5 1A                    LDA COUNT_VECTOR+1
-00BDDA  1  C9 16                    CMP #$16
-00BDDC  1  D0 01                    BNE A_0
-00BDDE  1  88                       DEY
-00BDDF  1  20 53 BE     A_0:        JSR SAVE_COUNT
-00BDE2  1  A9 FF                    LDA #$FF               ;clear screen
-00BDE4  1  8D 20 80                 STA $8020
-00BDE7  1  A9 41                    LDA #'A'
-00BDE9  1  8D 10 73                 STA $7310
-00BDEC  1  A9 00                    LDA #<A_NOTE
-00BDEE  1  85 14                    STA CHANNEL_VOCTOR
-00BDF0  1  A9 0A                    LDA #>A_NOTE
-00BDF2  1  85 15                    STA CHANNEL_VOCTOR+1
-00BDF4  1               
-00BDF4  1               
-00BDF4  1               
-00BDF4  1  A9 16                    LDA #<A_COUNT
-00BDF6  1  85 19                    STA COUNT_VECTOR
-00BDF8  1  A9 00                    LDA #>A_COUNT
-00BDFA  1  85 1A                    STA COUNT_VECTOR+1
-00BDFC  1               
-00BDFC  1  4C 64 BE                 JMP LIST_NOTE
-00BDFF  1               
-00BDFF  1               SET_CHANNEL_B:
-00BDFF  1  A5 1A                    LDA COUNT_VECTOR+1
-00BE01  1  C9 17                    CMP #$17
-00BE03  1  D0 01                    BNE B_0
-00BE05  1  88                       DEY
-00BE06  1               
-00BE06  1  20 53 BE     B_0:        JSR SAVE_COUNT
-00BE09  1  A9 FF                    LDA #$FF               ;clear screen
-00BE0B  1  8D 20 80                 STA $8020
-00BE0E  1  A9 42                    LDA #'B'
-00BE10  1  8D 10 73                 STA $7310
-00BE13  1  A9 00                    LDA #<B_NOTE
-00BE15  1  85 14                    STA CHANNEL_VOCTOR
-00BE17  1  A9 0B                    LDA #>B_NOTE
-00BE19  1  85 15                    STA CHANNEL_VOCTOR+1
-00BE1B  1               
-00BE1B  1               
-00BE1B  1               
-00BE1B  1  A9 17                    LDA #<B_COUNT
-00BE1D  1  85 19                    STA COUNT_VECTOR
-00BE1F  1  A9 00                     LDA #>B_COUNT
-00BE21  1  85 1A                     STA COUNT_VECTOR+1
-00BE23  1               
-00BE23  1  4C 64 BE                 JMP LIST_NOTE
-00BE26  1               
-00BE26  1  4C 86 BE     PLAY_NOTE_0: JMP INIT_PLAY_NOTE
-00BE29  1  4C 59 BE     BS_BUTTON_0: JMP BS_BUTTON
-00BE2C  1               
-00BE2C  1               SET_CHANNEL_C:
-00BE2C  1  A5 1A                    LDA COUNT_VECTOR+1
-00BE2E  1  C9 18                    CMP #$18
-00BE30  1  D0 01                    BNE C_0
-00BE32  1  88                       DEY
-00BE33  1               
-00BE33  1  20 53 BE     C_0:        JSR SAVE_COUNT
-00BE36  1  A9 FF                    LDA #$FF               ;clear screen
-00BE38  1  8D 20 80                 STA $8020
-00BE3B  1  A9 43                    LDA #'C'
-00BE3D  1  8D 10 73                 STA $7310
-00BE40  1  A9 00                    LDA #<C_NOTE
-00BE42  1  85 14                    STA CHANNEL_VOCTOR
-00BE44  1  A9 0C                    LDA #>C_NOTE
-00BE46  1  85 15                    STA CHANNEL_VOCTOR+1
-00BE48  1               
-00BE48  1               
-00BE48  1               
-00BE48  1  A9 18                    LDA #<C_COUNT
-00BE4A  1  85 19                    STA COUNT_VECTOR
-00BE4C  1  A9 00                     LDA #>C_COUNT
-00BE4E  1  85 1A                     STA COUNT_VECTOR+1
-00BE50  1               
-00BE50  1  4C 64 BE                 JMP LIST_NOTE
-00BE53  1               
-00BE53  1               SAVE_COUNT:
-00BE53  1               
-00BE53  1  98                      TYA
-00BE54  1  A0 00                   LDY #$00
-00BE56  1  91 19                   STA (COUNT_VECTOR),Y
-00BE58  1  60                      RTS
-00BE59  1               
-00BE59  1               BS_BUTTON:
-00BE59  1                           ;DEX
-00BE59  1  88                       DEY
-00BE5A  1  A9 20                    LDA #$20
-00BE5C  1  91 14                    STA (CHANNEL_VOCTOR),Y
-00BE5E  1  99 38 73                 STA VRAM_BEGIN,Y
-00BE61  1                           ;DEY
-00BE61  1  4C B4 BD                 JMP GET_NOTE
-00BE64  1               
-00BE64  1               
-00BE64  1               
-00BE64  1               LIST_NOTE:
-00BE64  1  B1 19                    LDA (COUNT_VECTOR),Y
-00BE66  1  C9 00                    CMP #$00
-00BE68  1  F0 14                    BEQ RE_GET_NOTE
-00BE6A  1               
-00BE6A  1  85 26                    STA COUNT_TEMP
-00BE6C  1  A0 00                    LDY #$00
-00BE6E  1               
-00BE6E  1               
-00BE6E  1               
-00BE6E  1  B1 14        LIST_LOOP:  LDA (CHANNEL_VOCTOR),Y
-00BE70  1  99 38 73                 STA VRAM_BEGIN,Y
-00BE73  1  C8                       INY
-00BE74  1  98                       TYA
-00BE75  1  C5 26                    CMP COUNT_TEMP
-00BE77  1  90 F5                    BCC LIST_LOOP
-00BE79  1                           ;LDA (CHANNEL_VOCTOR),Y
-00BE79  1                           ;STA VRAM_BEGIN,Y
-00BE79  1                           ;INY
-00BE79  1                           ;LDY COUNT_TEMP
-00BE79  1  4C B4 BD     GET_NOTE_0:            JMP GET_NOTE
-00BE7C  1               
-00BE7C  1               
-00BE7C  1               RE:
-00BE7C  1  A4 2D                    LDY Y_NOTE_TEMP
-00BE7E  1               RE_GET_NOTE:
-00BE7E  1  A9 4E        LDA #'N'  ; debug
-00BE80  1  8D 1E 73                 STA $731E
-00BE83  1  4C B4 BD      JMP GET_NOTE
-00BE86  1               
-00BE86  1               
-00BE86  1               INIT_PLAY_NOTE:  ;STY Y_NOTE_TEMP
-00BE86  1  A9 00                    LDA #$00      ; set channel A B C vol to zero
-00BE88  1  8D 08 A0                 STA $A008
-00BE8B  1  8D 09 A0                 STA $A009
-00BE8E  1  8D 0A A0                 STA $A00A
-00BE91  1  A9 38                    LDA #$38      ;disable all channel
-00BE93  1  8D 07 A0                 STA $A007
-00BE96  1  A9 00                    LDA #$00
-00BE98  1  85 23                    STA OK_CHANNEL
-00BE9A  1  85 35                    STA Y_EACH_CHANNEL_BEGIN
-00BE9C  1  85 29                    STA X_TEMP     ;AY TUNE register num
-00BE9E  1               
-00BE9E  1  A9 16                    LDA #<A_COUNT  ;only A COUNT is use for play
-00BEA0  1  85 19                    STA COUNT_VECTOR
-00BEA2  1  A9 00                    LDA #>A_COUNT
-00BEA4  1  85 1A                    STA COUNT_VECTOR+1
-00BEA6  1               
-00BEA6  1  A9 31                    LDA #'1'  ; debug
-00BEA8  1  8D 1E 73                 STA $731E
-00BEAB  1               
-00BEAB  1               
-00BEAB  1               GET_NEXT_CHANNEL:
-00BEAB  1  A0 00                    LDY #$00
-00BEAD  1  A2 00                    LDX #$00
-00BEAF  1  A5 23                    LDA OK_CHANNEL
-00BEB1  1  C9 03                    CMP #$03
-00BEB3  1  F0 5E                    BEQ GO_FOR_NEXT_NOTE_0    ;next note update Y_EACH_CHANNEL_BEGIN
-00BEB5  1               
-00BEB5  1                           ;LDY Y_EACH_CHANNEL_BEGIN
-00BEB5  1               
-00BEB5  1                           ;JSR NEXT_CHANNEL
-00BEB5  1               
-00BEB5  1               PLAY_LOOP:
-00BEB5  1  A9 53                    LDA #'S'  ; debug
-00BEB7  1  8D 1E 73                 STA $731E
-00BEBA  1  E6 28                    INC SUM_CHAR     ;already palyed char
+00BDB2  1  AD 01 80     GET_NOTE:   LDA $8001
+00BDB5  1  C9 00                    CMP #$00
+00BDB7  1  F0 F9                    BEQ GET_NOTE
+00BDB9  1  C9 70                    CMP #'p'
+00BDBB  1  F0 67                    BEQ PLAY_NOTE_0
+00BDBD  1  C9 38                    CMP #'8'
+00BDBF  1  F0 15                    BEQ SET_CHANNEL_A
+00BDC1  1  C9 39                    CMP #'9'
+00BDC3  1  F0 38                    BEQ SET_CHANNEL_B
+00BDC5  1  C9 30                    CMP #'0'
+00BDC7  1  F0 61                    BEQ SET_CHANNEL_C
+00BDC9  1                           ; CMP #'N'
+00BDC9  1                           ; BEQ NEW_NOTE
+00BDC9  1  C9 64                    CMP #'d'
+00BDCB  1  F0 5A                    BEQ BS_BUTTON_0
+00BDCD  1               
+00BDCD  1                           ;INX
+00BDCD  1  91 14                    STA (CHANNEL_VOCTOR),Y
+00BDCF  1  99 38 73                 STA VRAM_BEGIN,Y
+00BDD2  1  C8                       INY
+00BDD3  1  4C B2 BD                 JMP GET_NOTE
+00BDD6  1               
+00BDD6  1               
+00BDD6  1               
+00BDD6  1               SET_CHANNEL_A:
+00BDD6  1  A5 1A                    LDA COUNT_VECTOR+1
+00BDD8  1  C9 16                    CMP #$16
+00BDDA  1  D0 01                    BNE A_0
+00BDDC  1  88                       DEY
+00BDDD  1  20 51 BE     A_0:        JSR SAVE_COUNT
+00BDE0  1  A9 FF                    LDA #$FF               ;clear screen
+00BDE2  1  8D 20 80                 STA $8020
+00BDE5  1  A9 41                    LDA #'A'
+00BDE7  1  8D 10 73                 STA $7310
+00BDEA  1  A9 00                    LDA #<A_NOTE
+00BDEC  1  85 14                    STA CHANNEL_VOCTOR
+00BDEE  1  A9 0A                    LDA #>A_NOTE
+00BDF0  1  85 15                    STA CHANNEL_VOCTOR+1
+00BDF2  1               
+00BDF2  1               
+00BDF2  1               
+00BDF2  1  A9 16                    LDA #<A_COUNT
+00BDF4  1  85 19                    STA COUNT_VECTOR
+00BDF6  1  A9 00                    LDA #>A_COUNT
+00BDF8  1  85 1A                    STA COUNT_VECTOR+1
+00BDFA  1               
+00BDFA  1  4C 62 BE                 JMP LIST_NOTE
+00BDFD  1               
+00BDFD  1               SET_CHANNEL_B:
+00BDFD  1  A5 1A                    LDA COUNT_VECTOR+1
+00BDFF  1  C9 17                    CMP #$17
+00BE01  1  D0 01                    BNE B_0
+00BE03  1  88                       DEY
+00BE04  1               
+00BE04  1  20 51 BE     B_0:        JSR SAVE_COUNT
+00BE07  1  A9 FF                    LDA #$FF               ;clear screen
+00BE09  1  8D 20 80                 STA $8020
+00BE0C  1  A9 42                    LDA #'B'
+00BE0E  1  8D 10 73                 STA $7310
+00BE11  1  A9 00                    LDA #<B_NOTE
+00BE13  1  85 14                    STA CHANNEL_VOCTOR
+00BE15  1  A9 0B                    LDA #>B_NOTE
+00BE17  1  85 15                    STA CHANNEL_VOCTOR+1
+00BE19  1               
+00BE19  1               
+00BE19  1               
+00BE19  1  A9 17                    LDA #<B_COUNT
+00BE1B  1  85 19                    STA COUNT_VECTOR
+00BE1D  1  A9 00                     LDA #>B_COUNT
+00BE1F  1  85 1A                     STA COUNT_VECTOR+1
+00BE21  1               
+00BE21  1  4C 62 BE                 JMP LIST_NOTE
+00BE24  1               
+00BE24  1  4C 84 BE     PLAY_NOTE_0: JMP INIT_PLAY_NOTE
+00BE27  1  4C 57 BE     BS_BUTTON_0: JMP BS_BUTTON
+00BE2A  1               
+00BE2A  1               SET_CHANNEL_C:
+00BE2A  1  A5 1A                    LDA COUNT_VECTOR+1
+00BE2C  1  C9 18                    CMP #$18
+00BE2E  1  D0 01                    BNE C_0
+00BE30  1  88                       DEY
+00BE31  1               
+00BE31  1  20 51 BE     C_0:        JSR SAVE_COUNT
+00BE34  1  A9 FF                    LDA #$FF               ;clear screen
+00BE36  1  8D 20 80                 STA $8020
+00BE39  1  A9 43                    LDA #'C'
+00BE3B  1  8D 10 73                 STA $7310
+00BE3E  1  A9 00                    LDA #<C_NOTE
+00BE40  1  85 14                    STA CHANNEL_VOCTOR
+00BE42  1  A9 0C                    LDA #>C_NOTE
+00BE44  1  85 15                    STA CHANNEL_VOCTOR+1
+00BE46  1               
+00BE46  1               
+00BE46  1               
+00BE46  1  A9 18                    LDA #<C_COUNT
+00BE48  1  85 19                    STA COUNT_VECTOR
+00BE4A  1  A9 00                     LDA #>C_COUNT
+00BE4C  1  85 1A                     STA COUNT_VECTOR+1
+00BE4E  1               
+00BE4E  1  4C 62 BE                 JMP LIST_NOTE
+00BE51  1               
+00BE51  1               SAVE_COUNT:
+00BE51  1               
+00BE51  1  98                      TYA
+00BE52  1  A0 00                   LDY #$00
+00BE54  1  91 19                   STA (COUNT_VECTOR),Y
+00BE56  1  60                      RTS
+00BE57  1               
+00BE57  1               BS_BUTTON:
+00BE57  1                           ;DEX
+00BE57  1  88                       DEY
+00BE58  1  A9 20                    LDA #$20
+00BE5A  1  91 14                    STA (CHANNEL_VOCTOR),Y
+00BE5C  1  99 38 73                 STA VRAM_BEGIN,Y
+00BE5F  1                           ;DEY
+00BE5F  1  4C B2 BD                 JMP GET_NOTE
+00BE62  1               
+00BE62  1               
+00BE62  1               
+00BE62  1               LIST_NOTE:
+00BE62  1  B1 19                    LDA (COUNT_VECTOR),Y
+00BE64  1  C9 00                    CMP #$00
+00BE66  1  F0 14                    BEQ RE_GET_NOTE
+00BE68  1               
+00BE68  1  85 26                    STA COUNT_TEMP
+00BE6A  1  A0 00                    LDY #$00
+00BE6C  1               
+00BE6C  1               
+00BE6C  1               
+00BE6C  1  B1 14        LIST_LOOP:  LDA (CHANNEL_VOCTOR),Y
+00BE6E  1  99 38 73                 STA VRAM_BEGIN,Y
+00BE71  1  C8                       INY
+00BE72  1  98                       TYA
+00BE73  1  C5 26                    CMP COUNT_TEMP
+00BE75  1  90 F5                    BCC LIST_LOOP
+00BE77  1                           ;LDA (CHANNEL_VOCTOR),Y
+00BE77  1                           ;STA VRAM_BEGIN,Y
+00BE77  1                           ;INY
+00BE77  1                           ;LDY COUNT_TEMP
+00BE77  1  4C B2 BD     GET_NOTE_0:            JMP GET_NOTE
+00BE7A  1               
+00BE7A  1               
+00BE7A  1               RE:
+00BE7A  1  A4 2D                    LDY Y_NOTE_TEMP
+00BE7C  1               RE_GET_NOTE:
+00BE7C  1  A9 4E        LDA #'N'  ; debug
+00BE7E  1  8D 1E 73                 STA $731E
+00BE81  1  4C B2 BD      JMP GET_NOTE
+00BE84  1               
+00BE84  1               
+00BE84  1               INIT_PLAY_NOTE:  ;STY Y_NOTE_TEMP
+00BE84  1  A9 00                    LDA #$00      ; set channel A B C vol to zero
+00BE86  1  8D 08 A0                 STA $A008
+00BE89  1  8D 09 A0                 STA $A009
+00BE8C  1  8D 0A A0                 STA $A00A
+00BE8F  1  A9 38                    LDA #$38      ;disable all channel
+00BE91  1  8D 07 A0                 STA $A007
+00BE94  1  A9 00                    LDA #$00
+00BE96  1  85 23                    STA OK_CHANNEL
+00BE98  1  85 35                    STA Y_EACH_CHANNEL_BEGIN
+00BE9A  1  85 29                    STA X_TEMP     ;AY TUNE register num
+00BE9C  1               
+00BE9C  1  A9 16                    LDA #<A_COUNT  ;only A COUNT is use for play
+00BE9E  1  85 19                    STA COUNT_VECTOR
+00BEA0  1  A9 00                    LDA #>A_COUNT
+00BEA2  1  85 1A                    STA COUNT_VECTOR+1
+00BEA4  1               
+00BEA4  1  A9 31                    LDA #'1'  ; debug
+00BEA6  1  8D 1E 73                 STA $731E
+00BEA9  1               
+00BEA9  1               
+00BEA9  1               GET_NEXT_CHANNEL:
+00BEA9  1  A0 00                    LDY #$00
+00BEAB  1  A2 00                    LDX #$00
+00BEAD  1  A5 23                    LDA OK_CHANNEL
+00BEAF  1  C9 03                    CMP #$03
+00BEB1  1  F0 60                    BEQ GO_FOR_NEXT_NOTE_0    ;next note update Y_EACH_CHANNEL_BEGIN
+00BEB3  1               
+00BEB3  1                           ;LDY Y_EACH_CHANNEL_BEGIN
+00BEB3  1               
+00BEB3  1                           ;JSR NEXT_CHANNEL
+00BEB3  1               
+00BEB3  1               PLAY_LOOP:
+00BEB3  1  A9 53                    LDA #'S'  ; debug
+00BEB5  1  8D 1E 73                 STA $731E
+00BEB8  1  E6 28                    INC SUM_CHAR     ;already palyed char
+00BEBA  1  A0 00                    LDY #$00
 00BEBC  1  B1 19                    LDA (COUNT_VECTOR),Y
 00BEBE  1  C5 28                    CMP SUM_CHAR
-00BEC0  1  B0 BC                    BCS RE_GET_NOTE     ;end play
+00BEC0  1  90 BA                    BCC RE_GET_NOTE     ;end play
 00BEC2  1                           ; CMP FINISH_CHAR
 00BEC2  1                           ; BEQ GET_NOTE_0
 00BEC2  1  A4 35                    LDY Y_EACH_CHANNEL_BEGIN   ;first time play Y=0
@@ -352,11 +353,11 @@ Current file: zMusic.s
 00BEE2  1  C8                       INY
 00BEE3  1  98                       TYA
 00BEE4  1  C5 28                    CMP SUM_CHAR
-00BEE6  1  F0 91                    BEQ GET_NOTE_0
-00BEE8  1  4C B5 BE                 JMP PLAY_LOOP
+00BEE6  1  F0 8F                    BEQ GET_NOTE_0
+00BEE8  1  4C B3 BE                 JMP PLAY_LOOP
 00BEEB  1               
 00BEEB  1               
-00BEEB  1  84 24        SET_TONE:   STY Y_NOTE_TEMP_2  ;backup the Y
+00BEEB  1  84 35        SET_TONE:   STY Y_EACH_CHANNEL_BEGIN  ;backup the Y
 00BEED  1  48                       PHA                 ; A -> NOTE
 00BEEE  1  A9 0F                    LDA #$0F
 00BEF0  1  A6 23                    LDX OK_CHANNEL
@@ -368,7 +369,7 @@ Current file: zMusic.s
 00BEF8  1  E9 41                    SBC #$41     ; the org TUNE
 00BEFA  1               
 00BEFA  1  A8                       TAY
-00BEFB  1  B9 01 BD                 LDA TUNE_PAD,Y   ;#
+00BEFB  1  B9 FF BC                 LDA TUNE_PAD,Y   ;#
 00BEFE  1  18                       CLC
 00BEFF  1  65 25                    ADC SHARP
 00BF01  1  A8                       TAY                 ;Y - the TUNE
@@ -429,7 +430,7 @@ Current file: zMusic.s
 00BF34  1  A9 50                   LDA #'P'  ; debug
 00BF36  1  8D 1E 73                 STA $731E
 00BF39  1               
-00BF39  1  4C AB BE                 JMP GET_NEXT_CHANNEL
+00BF39  1  4C A9 BE                 JMP GET_NEXT_CHANNEL
 00BF3C  1               
 00BF3C  1               
 00BF3C  1               SET_PLAY_HOLD:
@@ -473,9 +474,9 @@ Current file: zMusic.s
 00BF62  1  E6 35                      INC Y_EACH_CHANNEL_BEGIN
 00BF64  1               
 00BF64  1  A9 52                      LDA #'R'  ; debug
-00BF66  1  8D 1E 73                   STA $731E
+00BF66  1  8D 20 73                   STA $7320
 00BF69  1  A0 00                      LDY #$00
-00BF6B  1  4C B5 BE                   JMP PLAY_LOOP
+00BF6B  1  4C B3 BE                   JMP PLAY_LOOP
 00BF6E  1               
 00BF6E  1               
 00BF6E  1               
@@ -487,12 +488,12 @@ Current file: zMusic.s
 00BF6E  1  A9 33                    LDA #'3'   ;debug
 00BF70  1  8D 18 73                 STA $7318
 00BF73  1               
-00BF73  1  A9 08                    LDA #<NOTE_TABLE_C3_R00
+00BF73  1  A9 06                    LDA #<NOTE_TABLE_C3_R00
 00BF75  1  85 10                    STA NOTE_VECTOR_R0
 00BF77  1  A9 BD                    LDA #>NOTE_TABLE_C3_R00
 00BF79  1  85 11                    STA NOTE_VECTOR_R0+1
 00BF7B  1               
-00BF7B  1  A9 2C                    LDA #<NOTE_TABLE_C3_R01
+00BF7B  1  A9 2A                    LDA #<NOTE_TABLE_C3_R01
 00BF7D  1  85 12                    STA NOTE_VECTOR_R1
 00BF7F  1  A9 BD                    LDA #>NOTE_TABLE_C3_R01
 00BF81  1  85 13                    STA NOTE_VECTOR_R1+1
@@ -505,12 +506,12 @@ Current file: zMusic.s
 00BF87  1               
 00BF87  1  A9 34                     LDA #'4'   ;debug
 00BF89  1  8D 19 73                 STA $7319
-00BF8C  1  A9 14                      LDA #<NOTE_TABLE_C4_R00
+00BF8C  1  A9 12                      LDA #<NOTE_TABLE_C4_R00
 00BF8E  1  85 10                    STA NOTE_VECTOR_R0
 00BF90  1  A9 BD                    LDA #>NOTE_TABLE_C4_R00
 00BF92  1  85 11                    STA NOTE_VECTOR_R0+1
 00BF94  1               
-00BF94  1  A9 38                    LDA #<NOTE_TABLE_C4_R01
+00BF94  1  A9 36                    LDA #<NOTE_TABLE_C4_R01
 00BF96  1  85 12                    STA NOTE_VECTOR_R1
 00BF98  1  A9 BD                    LDA #>NOTE_TABLE_C4_R01
 00BF9A  1  85 13                    STA NOTE_VECTOR_R1+1
@@ -522,12 +523,12 @@ Current file: zMusic.s
 00BFA0  1               SET_OCTAVE_C5:
 00BFA0  1  A9 35                    LDA #'5'   ;debug
 00BFA2  1  8D 1A 73                 STA $731A
-00BFA5  1  A9 20                    LDA #<NOTE_TABLE_C5_R00
+00BFA5  1  A9 1E                    LDA #<NOTE_TABLE_C5_R00
 00BFA7  1  85 10                    STA NOTE_VECTOR_R0
 00BFA9  1  A9 BD                    LDA #>NOTE_TABLE_C5_R00
 00BFAB  1  85 11                    STA NOTE_VECTOR_R0+1
 00BFAD  1               
-00BFAD  1  A9 44                    LDA #<NOTE_TABLE_C5_R01
+00BFAD  1  A9 42                    LDA #<NOTE_TABLE_C5_R01
 00BFAF  1  85 12                    STA NOTE_VECTOR_R1
 00BFB1  1  A9 BD                    LDA #>NOTE_TABLE_C5_R01
 00BFB3  1  85 13                    STA NOTE_VECTOR_R1+1
