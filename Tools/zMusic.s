@@ -1,6 +1,6 @@
 ;=====================zMUSIC=====================
 
-.org $BCF7
+.org $BD01
                ;0 1 2 3 4 5 6 
 TUNE_PAD: .byte 0,1,1,2,3,3,4
 
@@ -61,7 +61,7 @@ ZUTA:       LDA #$FF               ;clear screen
             STA MSGH
             JSR SHWMSG
 
-            LDA #$0A               ;set button states
+            LDA #$20               ;set button states
             STA IS_WEAK
             LDA #$FF
             STA IS_WEAK_2
@@ -252,7 +252,6 @@ BACK_TO_CHANNEL_A:
             STA $A008
             STA $A009
             STA $A00A
-            ;LDY #$00
             JMP A_0
 
 INIT_PLAY_NOTE:  ;STY Y_NOTE_TEMP
@@ -265,8 +264,6 @@ INIT_PLAY_NOTE:  ;STY Y_NOTE_TEMP
             LDA #$00
             STA OK_CHANNEL
             STA Y_EACH_CHANNEL_BEGIN
-            STA Y_EACH_CHANNEL_BEGIN+1
-            STA Y_EACH_CHANNEL_BEGIN+2
             STA X_TEMP     ;AY TUNE register num
 
 
@@ -286,8 +283,8 @@ PLAY_LOOP:
             LDA #'S'  ; debug
             STA $731E
             
-            LDX OK_CHANNEL
-            LDY Y_EACH_CHANNEL_BEGIN,X   ;first time play Y=0 
+            
+            LDY Y_EACH_CHANNEL_BEGIN   ;first time play Y=0 
         
            
 FINISH_SET_OCTAVE: 
@@ -315,12 +312,12 @@ FINISH_SET_OCTAVE:
             
             JMP BACK_TO_CHANNEL_A
 
-SET_TONE:   PHA
-            LDX OK_CHANNEL
-            STY Y_EACH_CHANNEL_BEGIN,X  ;backup the Y 
-                          ; A -> NOTE
+SET_TONE:   
+
+            STY Y_EACH_CHANNEL_BEGIN  ;backup the Y 
+            PHA                 ; A -> NOTE
             LDA #$0F
-            
+            LDX OK_CHANNEL
             STA VOL,X            ;set correct Channel Vol
             PLA                  ;recover note
             LDX X_TEMP
@@ -415,13 +412,8 @@ GO_FOR_NEXT_NOTE:
 
               LDA #$0A
               STA CHANNEL_VOCTOR+1
-              
-              
+
               INC Y_EACH_CHANNEL_BEGIN
-              INC Y_EACH_CHANNEL_BEGIN+1
-              INC Y_EACH_CHANNEL_BEGIN+2
-
-
 
               LDA #'R'  ; debug
               STA $7320
@@ -503,7 +495,7 @@ SET_VOL:
             STA $7311
 
             JSR DELAY
-            LDA #$0A               ;set button states
+            LDA #$20               ;set button states
             STA IS_WEAK
             LDA #$FF
             STA IS_WEAK_2
