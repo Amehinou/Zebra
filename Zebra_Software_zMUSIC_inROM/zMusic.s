@@ -1,6 +1,145 @@
 ;=====================zMUSIC=====================
 
-.org $BCF7
+.org $BBD0
+
+
+SAVE:  
+       TYA
+       PHA
+       LDA $0016
+       STA $0D00
+       LDA $0017
+       STA $0D01
+       LDA $0018
+       STA $0D02
+
+       LDA #$00
+       STA $50
+       LDA #$0A
+       STA $51
+       LDA #$03
+       STA $52
+       LDA #$0D
+       STA $53
+       LDA #$E0
+       STA $54
+       LDA #$00
+       STA $55
+       JSR $F204
+
+     
+       LDA #$00
+       STA $50
+       LDA #$0B
+       STA $51
+       LDA #$E3
+       STA $52
+       LDA #$0D
+       STA $53
+       LDA #$E0
+       STA $54
+       LDA #$00
+       STA $55
+       JSR $F204
+
+       
+       LDA #$00
+       STA $50
+       LDA #$0C
+       STA $51
+       LDA #$C3
+       STA $52
+       LDA #$0E
+       STA $53
+       LDA #$E0
+       STA $54
+       LDA #$00
+       STA $55
+       JSR $F204
+
+        LDA  #$00               ; Start address
+        STA  $710D
+        LDA  #$0D
+        STA  $710E
+        LDA  #$0E
+        STA  $710F
+      
+        LDA #$00
+        STA  $8005
+
+        LDA #'S'  ; debug
+        STA $7320
+        PLA
+        TAY
+        JMP GET_NOTE
+
+LOAD:
+        LDA  #$00               ; Start address
+        STA  $710D
+        LDA  #$0D
+        STA  $710E
+        LDA  #$0E
+        STA  $710F
+      
+        LDA #$01
+        STA  $8005
+
+        LDA $0D00
+        STA $0016
+        LDA $0D01
+        STA $0017
+        LDA $0D02
+        STA $0018
+
+       LDA #$00
+       STA $52
+       LDA #$0A
+       STA $53
+       LDA #$03
+       STA $50
+       LDA #$0D
+       STA $51
+       LDA #$E0
+       STA $54
+       LDA #$00
+       STA $55
+       JSR $F204
+
+       LDA #$00
+       STA $52
+       LDA #$0B
+       STA $53
+       LDA #$E3
+       STA $50
+       LDA #$0D
+       STA $51
+       LDA #$E0
+       STA $54
+       LDA #$00
+       STA $55
+       JSR $F204
+
+       LDA #$00
+       STA $52
+       LDA #$0C
+       STA $53
+       LDA #$C3
+       STA $50
+       LDA #$0E
+       STA $51
+       LDA #$E0
+       STA $54
+       LDA #$00
+       STA $55
+       JSR $F204
+
+       LDA #'L'  ; debug
+       STA $7320
+
+       JMP BACK_TO_CHANNEL_A
+
+
+
                ;0 1 2 3 4 5 6 
 TUNE_PAD: .byte 0,1,1,2,3,3,4
 
@@ -51,7 +190,9 @@ VRAM_BEGIN = $7338
 MSGL = $21
 MSGH = $22
 OK_CHANNEL = $23
-
+ 
+SAVE_0: JMP SAVE
+LOAD_0: JMP LOAD
 
 ZUTA:       LDA #$FF               ;clear screen
             STA $8020
@@ -123,6 +264,10 @@ GET_NOTE:   LDA $8001
             BEQ SET_CHANNEL_C
             CMP #'d'
             BEQ BS_BUTTON_0
+            CMP #'s'
+            BEQ SAVE_0
+            CMP #'l'
+            BEQ LOAD_0
             
             STA (CHANNEL_VOCTOR),Y
             STA VRAM_BEGIN,Y
@@ -307,8 +452,11 @@ FINISH_SET_OCTAVE:
             BEQ SET_PLAY_HOLD    ; next channel
             CMP #'.'
             BEQ SET_PLAY_OFF     ; next channel
+            CMP #'/'
+            BEQ SET_NO_HOLD     ; next channel
             CMP #'@'
             BEQ BACK_TO_CHANNEL_A     ; next channel
+           
 
             LDA #'E'  ; debug
             STA $7321
@@ -316,7 +464,9 @@ FINISH_SET_OCTAVE:
             JMP BACK_TO_CHANNEL_A
 
 SET_TONE:   PHA
+             
             LDX OK_CHANNEL
+
             STY Y_EACH_CHANNEL_BEGIN,X  ;backup the Y 
                           ; A -> NOTE
             LDA #$0F
@@ -346,7 +496,7 @@ SET_TONE:   PHA
 
         
             ;INY
-            
+
 
             JMP NEXT_CHANNEL
 
@@ -398,7 +548,18 @@ SET_PLAY_HOLD:
             JMP NEXT_CHANNEL
             
 
-
+SET_NO_HOLD:
+           LDX OK_CHANNEL
+           LDA #$00
+           STA VOL,X
+           LDA VOL
+            STA $A008
+            LDA VOL+1
+            STA $A009
+            LDA VOL+2
+            STA $A00A
+            INY
+            JMP FINISH_SET_OCTAVE
 
 
 
@@ -502,11 +663,15 @@ SET_VOL:
             LDA #'V'
             STA $7311
 
+           
+
             JSR DELAY
             LDA #$0A               ;set button states
             STA IS_WEAK
             LDA #$FF
             STA IS_WEAK_2
+
+            
 
             RTS
 
