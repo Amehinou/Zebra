@@ -1,6 +1,6 @@
 ;=====================zMUSIC=====================
 
-.org $BBD0
+.org $BBC2
 
 
 SAVE:  
@@ -166,6 +166,8 @@ CHANNEL_VOCTOR = $14
 VOL = $30
 Y_EACH_CHANNEL_BEGIN = $35
 
+
+
 A_COUNT = $16
 B_COUNT = $17
 C_COUNT = $18
@@ -186,7 +188,7 @@ A_NOTE = $0A00
 B_NOTE = $0B00
 C_NOTE = $0C00
 
-VRAM_BEGIN = $7338
+VRAM_BEGIN = $7324
 MSGL = $21
 MSGH = $22
 OK_CHANNEL = $23
@@ -221,7 +223,6 @@ ZUTA:       LDA #$FF               ;clear screen
             STA X_TEMP
          
             STA SHARP
-
            
 
             LDA #<NOTE_TABLE_C4_R00
@@ -254,19 +255,19 @@ ZUTA:       LDA #$FF               ;clear screen
 GET_NOTE:   LDA $8001
             CMP #$00
             BEQ GET_NOTE
-            CMP #'p'
+            CMP #'>'
             BEQ PLAY_NOTE_0
-            CMP #'8'
+            CMP #'['
             BEQ SET_CHANNEL_A
-            CMP #'9'
+            CMP #']'
             BEQ SET_CHANNEL_B
-            CMP #'0'
+            CMP #$5C ;\
             BEQ SET_CHANNEL_C
-            CMP #'d'
+            CMP #','
             BEQ BS_BUTTON_0
-            CMP #'s'
+            CMP #'='
             BEQ SAVE_0
-            CMP #'l'
+            CMP #'`'
             BEQ LOAD_0
             
             STA (CHANNEL_VOCTOR),Y
@@ -453,7 +454,10 @@ FINISH_SET_OCTAVE:
             CMP #'.'
             BEQ SET_PLAY_OFF     ; next channel
             CMP #'/'
-            BEQ SET_NO_HOLD     ; next channel
+            BEQ SET_NO_HOLD_0     ; next channel
+            
+            CMP #' '
+            BEQ SET_NO_HOLD_PLUS_0     ; next channel
             CMP #'@'
             BEQ BACK_TO_CHANNEL_A     ; next channel
            
@@ -501,7 +505,8 @@ SET_TONE:   PHA
             JMP NEXT_CHANNEL
 
 GO_FOR_NEXT_NOTE_0: JMP GO_FOR_NEXT_NOTE
-
+SET_NO_HOLD_PLUS_0:JMP SET_NO_HOLD_PLUS
+SET_NO_HOLD_0:JMP SET_NO_HOLD
 SET_PLAY_OFF:
             INC X_TEMP
             INC X_TEMP
@@ -519,6 +524,10 @@ SET_SHARP:
             INY
             JMP FINISH_SET_OCTAVE
 
+SET_OCTAVE_C3_0: JMP SET_OCTAVE_C3
+SET_OCTAVE_C4_0: JMP SET_OCTAVE_C4
+SET_OCTAVE_C5_0: JMP SET_OCTAVE_C5
+
 NEXT_CHANNEL:
 
        
@@ -534,9 +543,6 @@ NEXT_CHANNEL:
             
             JMP GET_NEXT_CHANNEL
 
-SET_OCTAVE_C3_0: JMP SET_OCTAVE_C3
-SET_OCTAVE_C4_0: JMP SET_OCTAVE_C4
-SET_OCTAVE_C5_0: JMP SET_OCTAVE_C5
 
 SET_PLAY_HOLD:
             LDA #'H'   ;debug
@@ -560,6 +566,12 @@ SET_NO_HOLD:
             STA $A00A
             INY
             JMP FINISH_SET_OCTAVE
+
+SET_NO_HOLD_PLUS:
+           
+            INY
+            JMP FINISH_SET_OCTAVE
+
 
 
 
