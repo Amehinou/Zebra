@@ -335,6 +335,16 @@ extern "C" {
     
   }
 
+  void falshVramBLK(int a){
+    if (a == 1){
+    for (int i=0x7130;i < 0x7310; i++) setRAM(i,0);
+    }
+
+    if (a == 0){
+    for (int i=0x7310;i < 0x7400; i++) setRAM(i,0);
+    }
+  }
+
   void insIO(uint8_t ins) {
     if(ins == 0x00){  //SAVE
         ioSerial.listen();

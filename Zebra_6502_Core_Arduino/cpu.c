@@ -51,7 +51,7 @@ extern void setRAM(unsigned int addr, uint8_t data);
 #define GETC           0x8001
 #define PUTC           0x8002
 
-#define pointROM        0xBBC2
+#define pointROM        0xBF2C
 #define RAND        0x8003
 #define AY        0x8004
 #define zDisk        0x8005
@@ -152,6 +152,10 @@ void write6502(uint16_t address, uint8_t value) {
 
  if (address == 0x8020) { //MOUSE simulated ASCII input   
     insVRAM(value);
+  }
+
+  if (address == 0x8008) { //MOUSE simulated ASCII input   
+    falshVramBLK(value);
   }
 
   if (address == zDisk) { //zDisk

@@ -214,11 +214,11 @@ ZUTA:       LDA #$FF               ;clear screen
             STA VOL+1
             STA VOL+2
            
-;===========================================
+
             STA A_COUNT
             STA B_COUNT
             STA C_COUNT
-;===========================================
+
             STA COUNT_VECTOR
             STA X_TEMP
          
@@ -498,10 +498,6 @@ SET_TONE:   PHA
             INX
             STX X_TEMP
 
-        
-            ;INY
-
-
             JMP NEXT_CHANNEL
 
 GO_FOR_NEXT_NOTE_0: JMP GO_FOR_NEXT_NOTE
@@ -516,7 +512,6 @@ SET_PLAY_OFF:
             ;INC OK_CHANNEL
             JMP NEXT_CHANNEL
             
-
 SET_SHARP:
 
             LDA #$01
@@ -530,7 +525,6 @@ SET_OCTAVE_C5_0: JMP SET_OCTAVE_C5
 
 NEXT_CHANNEL:
 
-       
             LDA #$00
             STA SHARP
             
@@ -550,7 +544,6 @@ SET_PLAY_HOLD:
 
             INC X_TEMP
             INC X_TEMP
-            ;INC OK_CHANNEL
             JMP NEXT_CHANNEL
             
 

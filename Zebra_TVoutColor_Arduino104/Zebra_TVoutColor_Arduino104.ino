@@ -166,6 +166,7 @@ void loop()
       vramL2 = false;
       vramH = false;
       vramValue = false;
+      isTXTmode = false;
     }
     
     if (curkey == 0xF4){

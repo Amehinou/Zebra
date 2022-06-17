@@ -233,11 +233,11 @@ Current file: zMusic.s
 00BD43  1  85 31                    STA VOL+1
 00BD45  1  85 32                    STA VOL+2
 00BD47  1               
-00BD47  1               ;===========================================
+00BD47  1               
 00BD47  1  85 16                    STA A_COUNT
 00BD49  1  85 17                    STA B_COUNT
 00BD4B  1  85 18                    STA C_COUNT
-00BD4D  1               ;===========================================
+00BD4D  1               
 00BD4D  1  85 19                    STA COUNT_VECTOR
 00BD4F  1  85 29                    STA X_TEMP
 00BD51  1               
@@ -517,10 +517,6 @@ Current file: zMusic.s
 00BEE1  1  E8                       INX
 00BEE2  1  86 29                    STX X_TEMP
 00BEE4  1               
-00BEE4  1               
-00BEE4  1                           ;INY
-00BEE4  1               
-00BEE4  1               
 00BEE4  1  4C 0E BF                 JMP NEXT_CHANNEL
 00BEE7  1               
 00BEE7  1  4C 47 BF     GO_FOR_NEXT_NOTE_0: JMP GO_FOR_NEXT_NOTE
@@ -535,7 +531,6 @@ Current file: zMusic.s
 00BEFA  1                           ;INC OK_CHANNEL
 00BEFA  1  4C 0E BF                 JMP NEXT_CHANNEL
 00BEFD  1               
-00BEFD  1               
 00BEFD  1               SET_SHARP:
 00BEFD  1               
 00BEFD  1  A9 01                    LDA #$01
@@ -548,7 +543,6 @@ Current file: zMusic.s
 00BF0B  1  4C 98 BF     SET_OCTAVE_C5_0: JMP SET_OCTAVE_C5
 00BF0E  1               
 00BF0E  1               NEXT_CHANNEL:
-00BF0E  1               
 00BF0E  1               
 00BF0E  1  A9 00                    LDA #$00
 00BF10  1  85 25                    STA SHARP
@@ -569,7 +563,6 @@ Current file: zMusic.s
 00BF23  1               
 00BF23  1  E6 29                    INC X_TEMP
 00BF25  1  E6 29                    INC X_TEMP
-00BF27  1                           ;INC OK_CHANNEL
 00BF27  1  4C 0E BF                 JMP NEXT_CHANNEL
 00BF2A  1               
 00BF2A  1               
