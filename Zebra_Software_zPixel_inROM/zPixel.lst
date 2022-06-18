@@ -6,169 +6,195 @@ Current file: zPixel.s
 000000r 1               ;            zPixel
 000000r 1               ;
 000000r 1               
-000000r 1               .org $BF2C
-00BF2C  1               
-00BF2C  1               POINT_L = $20
-00BF2C  1               POINT_H = $21
-00BF2C  1               IS_DRAW = $22
-00BF2C  1               
-00BF2C  1               
-00BF2C  1               LINE_COLOR_VEC = $23
-00BF2C  1               
-00BF2C  1               VRAM_BEGIN = $7324
-00BF2C  1               
-00BF2C  1               
-00BF2C  1               START:
-00BF2C  1  A9 81                LDA #$81
-00BF2E  1  8D 20 80             STA $8020
-00BF31  1               
-00BF31  1  A9 30                LDA #$30
-00BF33  1  85 20                STA POINT_L
-00BF35  1  A9 71                LDA #$71
-00BF37  1  85 21                STA POINT_H
-00BF39  1  20 C9 BF             JSR SET_POINT
-00BF3C  1               
-00BF3C  1               GET_KEY:
-00BF3C  1  AD 01 80            LDA $8001
-00BF3F  1  C9 00               CMP #$00
-00BF41  1  F0 F9               BEQ GET_KEY
-00BF43  1               
-00BF43  1  C9 77               CMP #'w'
-00BF45  1  F0 1F               BEQ UP
-00BF47  1  C9 73               CMP #'s'
-00BF49  1  F0 34               BEQ DOWN
-00BF4B  1  C9 61               CMP #'a'
-00BF4D  1  F0 64               BEQ LEFT
-00BF4F  1  C9 64               CMP #'d'
-00BF51  1  F0 40               BEQ RIGHT
-00BF53  1  C9 20               CMP #' '
-00BF55  1  F0 53               BEQ DRAW
-00BF57  1  C9 65               CMP #'e'
-00BF59  1  F0 4C               BEQ ERASER
-00BF5B  1  C9 6E               CMP #'n'
-00BF5D  1  F0 4E               BEQ FLASH_VRAM
-00BF5F  1  C9 30               CMP #$30 ;0
-00BF61  1  B0 4D               BCS SET_LINE_COLOR
-00BF63  1                   ;    CMP #'`'
-00BF63  1                   ;    BEQ LOAD
-00BF63  1                   ;    CMP #'='
-00BF63  1                   ;    BEQ SAVE
-00BF63  1               
-00BF63  1  4C 3C BF            JMP GET_KEY
-00BF66  1               
-00BF66  1               UP:
-00BF66  1               
-00BF66  1  20 DB BF            JSR SET_OLD_POINT
+000000r 1               .org $BF06
+00BF06  1               
+00BF06  1               POINT_L = $20
+00BF06  1               POINT_H = $21
+00BF06  1               IS_DRAW = $22
+00BF06  1               
+00BF06  1               LINE = $23
+00BF06  1               LINE_COLOR_VEC = $24
+00BF06  1               
+00BF06  1               VRAM_BEGIN = $7324
+00BF06  1               
+00BF06  1               
+00BF06  1               START:
+00BF06  1  A9 81                LDA #$81
+00BF08  1  8D 20 80             STA $8020
+00BF0B  1               
+00BF0B  1  A9 00                LDA #$00
+00BF0D  1  85 23                STA LINE
+00BF0F  1               
+00BF0F  1  A0 00                LDY #$00
+00BF11  1  A9 01        LOOP:   LDA #$01
+00BF13  1  91 24                STA (LINE_COLOR_VEC),Y
+00BF15  1  99 10 71             STA $7110,Y
+00BF18  1  C8                   INY
+00BF19  1  98                   TYA
+00BF1A  1  C9 14                CMP #$14
+00BF1C  1  D0 F3                BNE LOOP
+00BF1E  1               
+00BF1E  1               
+00BF1E  1  A9 30                LDA #$30
+00BF20  1  85 20                STA POINT_L
+00BF22  1  A9 71                LDA #$71
+00BF24  1  85 21                STA POINT_H
+00BF26  1  20 BA BF             JSR SET_POINT
+00BF29  1               
+00BF29  1               
+00BF29  1               
+00BF29  1               GET_KEY:
+00BF29  1  AD 01 80            LDA $8001
+00BF2C  1  C9 00               CMP #$00
+00BF2E  1  F0 F9               BEQ GET_KEY
+00BF30  1               
+00BF30  1  C9 77               CMP #'w'
+00BF32  1  F0 1F               BEQ UP
+00BF34  1  C9 73               CMP #'s'
+00BF36  1  F0 36               BEQ DOWN
+00BF38  1  C9 61               CMP #'a'
+00BF3A  1  F0 68               BEQ LEFT
+00BF3C  1  C9 64               CMP #'d'
+00BF3E  1  F0 44               BEQ RIGHT
+00BF40  1  C9 20               CMP #' '
+00BF42  1  F0 57               BEQ DRAW
+00BF44  1  C9 65               CMP #'e'
+00BF46  1  F0 50               BEQ ERASER
+00BF48  1  C9 6E               CMP #'n'
+00BF4A  1  F0 52               BEQ FLASH_VRAM
+00BF4C  1  C9 39               CMP #$39 ;0
+00BF4E  1  90 51               BCC SET_LINE_COLOR
+00BF50  1                   ;    CMP #'`'
+00BF50  1                   ;    BEQ LOAD
+00BF50  1                   ;    CMP #'='
+00BF50  1                   ;    BEQ SAVE
+00BF50  1               
+00BF50  1  4C 29 BF            JMP GET_KEY
+00BF53  1               
+00BF53  1               UP:
+00BF53  1  C6 23               DEC LINE
+00BF55  1  20 CC BF            JSR SET_OLD_POINT
+00BF58  1               
+00BF58  1  A5 20               LDA POINT_L
+00BF5A  1  C9 18               CMP #$18
+00BF5C  1  90 0B               BCC SUB_POINT_H
+00BF5E  1               
+00BF5E  1  38           UP_0:  SEC
+00BF5F  1  E9 18               SBC #$18
+00BF61  1  85 20               STA POINT_L
+00BF63  1  20 BA BF            JSR SET_POINT
+00BF66  1  4C 29 BF            JMP GET_KEY
 00BF69  1               
-00BF69  1  A5 20               LDA POINT_L
-00BF6B  1  C9 18               CMP #$18
-00BF6D  1  90 0B               BCC SUB_POINT_H
-00BF6F  1               
-00BF6F  1  38           UP_0:  SEC
-00BF70  1  E9 18               SBC #$18
-00BF72  1  85 20               STA POINT_L
-00BF74  1  20 C9 BF            JSR SET_POINT
-00BF77  1  4C 3C BF            JMP GET_KEY
-00BF7A  1               
-00BF7A  1               SUB_POINT_H:
-00BF7A  1  C6 21               DEC POINT_H
-00BF7C  1  4C 6F BF            JMP UP_0
-00BF7F  1               
-00BF7F  1               DOWN:
-00BF7F  1  20 DB BF            JSR SET_OLD_POINT
-00BF82  1  18                  CLC
-00BF83  1  A5 20               LDA POINT_L
-00BF85  1  69 18               ADC #$18
-00BF87  1  90 02               BCC NOT_ADD_POINT_H
-00BF89  1  E6 21               INC POINT_H
-00BF8B  1               NOT_ADD_POINT_H:
-00BF8B  1  85 20               STA POINT_L
-00BF8D  1  20 C9 BF            JSR SET_POINT
-00BF90  1  4C 3C BF            JMP GET_KEY
-00BF93  1               
-00BF93  1               RIGHT:
-00BF93  1  20 DB BF            JSR SET_OLD_POINT
-00BF96  1  18                  CLC
-00BF97  1  A5 20               LDA POINT_L
-00BF99  1  69 01               ADC #$01
-00BF9B  1  90 02               BCC RIGHT_0
-00BF9D  1  E6 21               INC POINT_H
-00BF9F  1               RIGHT_0:
-00BF9F  1  85 20               STA POINT_L
-00BFA1  1  20 C9 BF            JSR SET_POINT
-00BFA4  1  4C 3C BF            JMP GET_KEY
+00BF69  1               SUB_POINT_H:
+00BF69  1  C6 21               DEC POINT_H
+00BF6B  1  4C 5E BF            JMP UP_0
+00BF6E  1               
+00BF6E  1               DOWN:
+00BF6E  1  E6 23               INC LINE
+00BF70  1  20 CC BF            JSR SET_OLD_POINT
+00BF73  1  18                  CLC
+00BF74  1  A5 20               LDA POINT_L
+00BF76  1  69 18               ADC #$18
+00BF78  1  90 02               BCC NOT_ADD_POINT_H
+00BF7A  1  E6 21               INC POINT_H
+00BF7C  1               NOT_ADD_POINT_H:
+00BF7C  1  85 20               STA POINT_L
+00BF7E  1  20 BA BF            JSR SET_POINT
+00BF81  1  4C 29 BF            JMP GET_KEY
+00BF84  1               
+00BF84  1               RIGHT:
+00BF84  1  20 CC BF            JSR SET_OLD_POINT
+00BF87  1  18                  CLC
+00BF88  1  A5 20               LDA POINT_L
+00BF8A  1  69 01               ADC #$01
+00BF8C  1  90 02               BCC RIGHT_0
+00BF8E  1  E6 21               INC POINT_H
+00BF90  1               RIGHT_0:
+00BF90  1  85 20               STA POINT_L
+00BF92  1  20 BA BF            JSR SET_POINT
+00BF95  1  4C 29 BF            JMP GET_KEY
+00BF98  1               
+00BF98  1  4C E2 BF     ERASER:   JMP ERASER_0
+00BF9B  1  4C DB BF     DRAW:   JMP DRAW_0
+00BF9E  1  4C E9 BF     FLASH_VRAM: JMP FLASH_VRAM_0
+00BFA1  1  4C F1 BF     SET_LINE_COLOR: JMP SET_LINE_COLOR_0
+00BFA4  1               
+00BFA4  1               LEFT:
+00BFA4  1  20 CC BF           JSR SET_OLD_POINT
 00BFA7  1               
-00BFA7  1  4C F1 BF     ERASER:   JMP ERASER_0
-00BFAA  1  4C EA BF     DRAW:   JMP DRAW_0
-00BFAD  1  4C F8 BF     FLASH_VRAM: JMP FLASH_VRAM_0
-00BFB0  1  4C 00 C0     SET_LINE_COLOR: JMP SET_LINE_COLOR_0
-00BFB3  1               
-00BFB3  1               LEFT:
-00BFB3  1  20 DB BF           JSR SET_OLD_POINT
-00BFB6  1               
-00BFB6  1  A5 20              LDA POINT_L
-00BFB8  1  C9 00              CMP #$00
-00BFBA  1  D0 02              BNE LEFT_0
-00BFBC  1  C6 21              DEC POINT_H
-00BFBE  1               LEFT_0:
-00BFBE  1  38                 SEC
-00BFBF  1  E9 01              SBC #$01
-00BFC1  1  85 20              STA POINT_L
-00BFC3  1  20 C9 BF           JSR SET_POINT
-00BFC6  1  4C 3C BF           JMP GET_KEY
-00BFC9  1               
-00BFC9  1               SET_POINT:
-00BFC9  1  A0 00               LDY #$00
-00BFCB  1  B1 20               LDA (POINT_L),Y
-00BFCD  1  C9 1F               CMP #$1F
-00BFCF  1  F0 05               BEQ SET_0
-00BFD1  1               
-00BFD1  1  A9 1F               LDA #$1F
-00BFD3  1  91 20               STA (POINT_L),Y
-00BFD5  1  60                  RTS
-00BFD6  1               
-00BFD6  1               SET_0:
-00BFD6  1  A9 FF               LDA #$FF
-00BFD8  1  85 22               STA IS_DRAW
-00BFDA  1  60                  RTS
+00BFA7  1  A5 20              LDA POINT_L
+00BFA9  1  C9 00              CMP #$00
+00BFAB  1  D0 02              BNE LEFT_0
+00BFAD  1  C6 21              DEC POINT_H
+00BFAF  1               LEFT_0:
+00BFAF  1  38                 SEC
+00BFB0  1  E9 01              SBC #$01
+00BFB2  1  85 20              STA POINT_L
+00BFB4  1  20 BA BF           JSR SET_POINT
+00BFB7  1  4C 29 BF           JMP GET_KEY
+00BFBA  1               
+00BFBA  1               SET_POINT:
+00BFBA  1  A0 00               LDY #$00
+00BFBC  1  B1 20               LDA (POINT_L),Y
+00BFBE  1  C9 1F               CMP #$1F
+00BFC0  1  F0 05               BEQ SET_0
+00BFC2  1               
+00BFC2  1  A9 1F               LDA #$1F
+00BFC4  1  91 20               STA (POINT_L),Y
+00BFC6  1  60                  RTS
+00BFC7  1               
+00BFC7  1               SET_0:
+00BFC7  1  A9 FF               LDA #$FF
+00BFC9  1  85 22               STA IS_DRAW
+00BFCB  1  60                  RTS
+00BFCC  1               
+00BFCC  1               
+00BFCC  1               
+00BFCC  1               SET_OLD_POINT:
+00BFCC  1  A0 00              LDY #$00
+00BFCE  1  A5 22              LDA IS_DRAW
+00BFD0  1  C9 FF              CMP #$FF
+00BFD2  1  F0 04              BEQ RECOVER_DRAW
+00BFD4  1  A9 00              LDA #$00
+00BFD6  1  91 20              STA (POINT_L),Y
+00BFD8  1               RECOVER_DRAW:
+00BFD8  1  84 22              STY IS_DRAW
+00BFDA  1  60                 RTS
 00BFDB  1               
 00BFDB  1               
+00BFDB  1               DRAW_0:
 00BFDB  1               
-00BFDB  1               SET_OLD_POINT:
-00BFDB  1  A0 00              LDY #$00
-00BFDD  1  A5 22              LDA IS_DRAW
-00BFDF  1  C9 FF              CMP #$FF
-00BFE1  1  F0 04              BEQ RECOVER_DRAW
-00BFE3  1  A9 00              LDA #$00
-00BFE5  1  91 20              STA (POINT_L),Y
-00BFE7  1               RECOVER_DRAW:
-00BFE7  1  84 22              STY IS_DRAW
-00BFE9  1  60                 RTS
-00BFEA  1               
-00BFEA  1               
-00BFEA  1               DRAW_0:
-00BFEA  1               
-00BFEA  1  A9 FF             LDA #$FF
-00BFEC  1  85 22             STA IS_DRAW
-00BFEE  1  4C 3C BF          JMP GET_KEY
+00BFDB  1  A9 FF             LDA #$FF
+00BFDD  1  85 22             STA IS_DRAW
+00BFDF  1  4C 29 BF          JMP GET_KEY
+00BFE2  1               
+00BFE2  1               ERASER_0:
+00BFE2  1               
+00BFE2  1  A9 00             LDA #$00
+00BFE4  1  85 22             STA IS_DRAW
+00BFE6  1  4C 29 BF          JMP GET_KEY
+00BFE9  1               
+00BFE9  1               FLASH_VRAM_0:
+00BFE9  1                    ;LDA #$80
+00BFE9  1                    ;STA $8020
+00BFE9  1               
+00BFE9  1  A9 01             LDA #$01
+00BFEB  1  8D 08 80          STA $8008
+00BFEE  1               
+00BFEE  1                    ;LDA #$81
+00BFEE  1                    ;STA $8020
+00BFEE  1  4C 06 BF          JMP START
 00BFF1  1               
-00BFF1  1               ERASER_0:
+00BFF1  1               SET_LINE_COLOR_0:
 00BFF1  1               
-00BFF1  1  A9 00             LDA #$00
-00BFF3  1  85 22             STA IS_DRAW
-00BFF5  1  4C 3C BF          JMP GET_KEY
-00BFF8  1               
-00BFF8  1               FLASH_VRAM_0:
-00BFF8  1                    ;LDA #$80
-00BFF8  1                    ;STA $8020
-00BFF8  1               
-00BFF8  1  A9 01             LDA #$01
-00BFFA  1  8D 08 80          STA $8008
-00BFFD  1               
-00BFFD  1                    ;LDA #$81
-00BFFD  1                    ;STA $8020
-00BFFD  1  4C 2C BF          JMP START
-00C000  1               
-00C000  1               SET_LINE_COLOR_0:
-00C000  1               
-00C000  1               
+00BFF1  1  38                SEC
+00BFF2  1  E9 30             SBC #$30
+00BFF4  1  A4 23             LDY LINE
+00BFF6  1  91 24             STA (LINE_COLOR_VEC),Y
+00BFF8  1  99 10 71          STA $7110,Y
+00BFFB  1  4C 29 BF          JMP GET_KEY
+00BFFE  1               
+00BFFE  1               SAVE:
+00BFFE  1               
+00BFFE  1               
+00BFFE  1               

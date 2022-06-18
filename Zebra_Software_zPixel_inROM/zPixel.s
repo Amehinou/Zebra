@@ -2,14 +2,14 @@
 ;            zPixel
 ;
 
-.org $BF2C
+.org $BF06
 
 POINT_L = $20
 POINT_H = $21
 IS_DRAW = $22
 
-
-LINE_COLOR_VEC = $23
+LINE = $23
+LINE_COLOR_VEC = $24
 
 VRAM_BEGIN = $7324
 
@@ -17,12 +17,27 @@ VRAM_BEGIN = $7324
 START:  
         LDA #$81
         STA $8020
+
+        LDA #$00
+        STA LINE
+        
+        LDY #$00
+LOOP:   LDA #$01
+        STA (LINE_COLOR_VEC),Y
+        STA $7110,Y
+        INY
+        TYA
+        CMP #$14
+        BNE LOOP
+
     
         LDA #$30
         STA POINT_L
         LDA #$71
         STA POINT_H
         JSR SET_POINT
+
+        
 
 GET_KEY:
        LDA $8001
@@ -43,8 +58,8 @@ GET_KEY:
        BEQ ERASER
        CMP #'n'
        BEQ FLASH_VRAM
-       CMP #$30 ;0          
-       BCS SET_LINE_COLOR 
+       CMP #$39 ;0          
+       BCC SET_LINE_COLOR 
     ;    CMP #'`'
     ;    BEQ LOAD
     ;    CMP #'='
@@ -53,7 +68,7 @@ GET_KEY:
        JMP GET_KEY
 
 UP:
-      
+       DEC LINE
        JSR SET_OLD_POINT
        
        LDA POINT_L
@@ -71,6 +86,7 @@ SUB_POINT_H:
        JMP UP_0
 
 DOWN:  
+       INC LINE
        JSR SET_OLD_POINT
        CLC
        LDA POINT_L
@@ -166,4 +182,14 @@ FLASH_VRAM_0:
      JMP START
 
 SET_LINE_COLOR_0:
+
+     SEC
+     SBC #$30
+     LDY LINE
+     STA (LINE_COLOR_VEC),Y
+     STA $7110,Y
+     JMP GET_KEY
+
+SAVE:
+
      
