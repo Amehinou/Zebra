@@ -1,7 +1,7 @@
 ;
 ;         zTetris 
 ;
-.org $BD6F
+.org $BCAD
 
 
 
@@ -29,26 +29,39 @@ IS_STOP = $35
 IS_FIRST = $36
 IS_INNER_BLK = $37
 
+CHECK_L = $50
+CHECK_H = $51
+IS_NOT_FULL = $52
+CHECK_LINE = $53
+MOVE_L = $54
+MOVE_H = $55
+MOVE_LINE = $56
+
 START:
         JSR INIT_MAP
-NEXT:   JSR GET_RANDOM_SHAPE
+        JSR SET_COLOR
+NEXT_0:
+         JSR GET_RANDOM_SHAPE
         JSR INIT_SHAPE
         ;JSR CORE_DISPLAY_LOOP
 MAIN_LOOP:     
         JSR GET_KEY
         LDA IS_RESET
+
         CMP #$FF
         BEQ START
         LDA IS_STOP
         CMP #$FF
         BEQ NEXT
+
+        
+
         JMP MAIN_LOOP
 
-;  NEXT:
+ NEXT:
 
-;  LDA #$01
-;      STA $8008
-;      JMP START
+      JSR CHECK_LOOP
+      JMP NEXT_0
         
 
 
@@ -233,8 +246,8 @@ INIT_MAP:
         LDA #$81
         STA $8020
 
-        ; LDA #$01
-        ; STA $8008
+        LDA #$01
+        STA $8008
 
         LDA #$30
         STA POINT_L
@@ -550,6 +563,7 @@ SET_NO_STOP:
         
         RTS
 
+
         
 
 ROTATE_PAD_0: .byte $18,$42,$18,$42
@@ -560,3 +574,142 @@ ROTATE_PAD_4: .byte $D0,$4C,$0B,$32
 ROTATE_PAD_5: .byte $58,$4A,$1A,$52
 ROTATE_PAD_6: .byte $68,$8A,$16,$51
 
+
+
+CHECK_LOOP:
+
+        LDA #$00
+        STA CHECK_LINE
+        LDA #$E1
+        STA CHECK_L
+        LDA #$72
+        STA CHECK_H
+
+        LDY #$00
+C_LOOP:
+        LDA (CHECK_L),Y
+        CMP #$00 
+        BEQ NOT_FULL
+C_LOOP_3:
+        INY
+        CPY #$0B
+        BEQ DELETE_LINE
+        JMP C_LOOP
+NOT_FULL:
+        LDA #$FF
+        STA IS_NOT_FULL
+        JMP C_LOOP_3
+
+NEXT_LINE:
+        LDA CHECK_LINE
+        CMP #$07
+        BEQ CHECK_FINISH
+        INC CHECK_LINE
+        LDY #$00
+         
+         LDA CHECK_L
+         SEC
+         SBC #$18
+         BCS C_LOOP_1
+         INC CHECK_H
+C_LOOP_1:
+         STA CHECK_L
+         JMP C_LOOP
+         
+
+CHECK_FINISH:
+        RTS
+
+
+DELETE_LINE:
+        LDA IS_NOT_FULL
+        CMP #$FF
+        BEQ FINISH_DELETE
+
+        LDY #$00
+C_LOOP_2:
+        LDA #$00
+        STA (CHECK_L),Y
+        INY
+        CPY #$0B
+        BEQ MOVE
+        JMP C_LOOP_2
+        
+
+FINISH_DELETE:
+        LDA #$00
+        STA IS_NOT_FULL
+        JMP NEXT_LINE
+
+
+MOVE:
+        LDA CHECK_L
+        STA MOVE_L
+        LDA CHECK_H
+        STA MOVE_H
+        
+        LDA #$0F
+        SEC
+        SBC CHECK_LINE
+        STA MOVE_LINE
+
+
+NEXT_MOVE_0:
+        LDA MOVE_LINE
+        CMP #$07
+        BEQ CHECK_LOOP
+        DEC MOVE_LINE
+
+
+
+         LDA MOVE_L
+         SEC
+         SBC #$18
+         BCS C_LOOP_4
+         INC MOVE_H
+C_LOOP_4:
+         STA MOVE_L
+
+         LDY #$00
+C_LOOP_5:
+         LDA (MOVE_L),Y
+         STA (CHECK_L),Y
+         INY
+         CPY #$0B
+         BEQ NEXT_MOVE
+         JMP C_LOOP_5
+
+
+NEXT_MOVE:
+         LDA CHECK_L
+         SEC
+         SBC #$18
+         BCS C_LOOP_6
+         INC CHECK_H
+C_LOOP_6:
+         STA CHECK_L
+         JMP NEXT_MOVE_0
+
+
+
+
+SET_COLOR:
+        LDY #$00
+
+ S_C:
+        CPY #$05
+        BEQ S_C_0
+        LDA #$05
+        STA $7110,Y
+        LDA #$04
+        STA $7115,Y
+        LDA #$05
+        STA $711A,Y
+        LDA #$04
+        STA $711F,Y
+        
+         INY
+         JMP S_C
+
+S_C_0:
+        RTS
