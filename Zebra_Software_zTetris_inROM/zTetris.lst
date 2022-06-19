@@ -5,67 +5,106 @@ Current file: zTetris.s
 000000r 1               ;
 000000r 1               ;         zTetris
 000000r 1               ;
-000000r 1               .org $BCAD
-00BCAD  1               
-00BCAD  1               
-00BCAD  1               
-00BCAD  1               POINT_L = $20
-00BCAD  1               POINT_H = $21
-00BCAD  1               
-00BCAD  1               PIVOT = $22
-00BCAD  1               
-00BCAD  1               NOW_POINT_L = $23
-00BCAD  1               NOW_POINT_H = $24
-00BCAD  1               
-00BCAD  1               IS_CLEAR = $25
-00BCAD  1               ROTATE_NUM = $26
-00BCAD  1               PIVOT_VEC = $27
-00BCAD  1               IS_RESET = $29
-00BCAD  1               IS_DOWN_BLK_EXIST = $30
-00BCAD  1               IS_DOWN_BLK_SELF = $31
-00BCAD  1               
-00BCAD  1               
-00BCAD  1               
-00BCAD  1               IS_DOWN = $32
-00BCAD  1               NEXT_POINT_L = $33
-00BCAD  1               NEXT_POINT_H = $34
-00BCAD  1               IS_STOP = $35
-00BCAD  1               IS_FIRST = $36
-00BCAD  1               IS_INNER_BLK = $37
-00BCAD  1               
-00BCAD  1               CHECK_L = $50
-00BCAD  1               CHECK_H = $51
-00BCAD  1               IS_NOT_FULL = $52
-00BCAD  1               CHECK_LINE = $53
-00BCAD  1               MOVE_L = $54
-00BCAD  1               MOVE_H = $55
-00BCAD  1               MOVE_LINE = $56
-00BCAD  1               
-00BCAD  1               START:
-00BCAD  1  20 C0 BD             JSR INIT_MAP
-00BCB0  1  20 E1 BF             JSR SET_COLOR
-00BCB3  1               NEXT_0:
-00BCB3  1  20 50 BD              JSR GET_RANDOM_SHAPE
-00BCB6  1  20 78 BD             JSR INIT_SHAPE
-00BCB9  1                       ;JSR CORE_DISPLAY_LOOP
-00BCB9  1               MAIN_LOOP:
-00BCB9  1  20 DD BC             JSR GET_KEY
-00BCBC  1  A5 29                LDA IS_RESET
-00BCBE  1               
-00BCBE  1  C9 FF                CMP #$FF
-00BCC0  1  F0 EB                BEQ START
-00BCC2  1  A5 35                LDA IS_STOP
-00BCC4  1  C9 FF                CMP #$FF
-00BCC6  1  F0 03                BEQ NEXT
-00BCC8  1               
-00BCC8  1               
-00BCC8  1               
-00BCC8  1  4C B9 BC             JMP MAIN_LOOP
+000000r 1               .org $BC86
+00BC86  1               
+00BC86  1               
+00BC86  1               
+00BC86  1               POINT_L = $20
+00BC86  1               POINT_H = $21
+00BC86  1               
+00BC86  1               PIVOT = $22
+00BC86  1               
+00BC86  1               NOW_POINT_L = $23
+00BC86  1               NOW_POINT_H = $24
+00BC86  1               
+00BC86  1               IS_CLEAR = $25
+00BC86  1               ROTATE_NUM = $26
+00BC86  1               PIVOT_VEC = $27
+00BC86  1               IS_RESET = $29
+00BC86  1               IS_DOWN_BLK_EXIST = $30
+00BC86  1               IS_DOWN_BLK_SELF = $31
+00BC86  1               
+00BC86  1               
+00BC86  1               
+00BC86  1               IS_DOWN = $32
+00BC86  1               NEXT_POINT_L = $33
+00BC86  1               NEXT_POINT_H = $34
+00BC86  1               IS_STOP = $35
+00BC86  1               IS_FIRST = $36
+00BC86  1               IS_INNER_BLK = $37
+00BC86  1               
+00BC86  1               CHECK_L = $50
+00BC86  1               CHECK_H = $51
+00BC86  1               IS_NOT_FULL = $52
+00BC86  1               CHECK_LINE = $53
+00BC86  1               MOVE_L = $54
+00BC86  1               MOVE_H = $55
+00BC86  1               MOVE_LINE = $56
+00BC86  1               IS_WEAK = $57
+00BC86  1               IS_WEAK_2 = $58
+00BC86  1               
+00BC86  1               START:
+00BC86  1  20 C0 BD             JSR INIT_MAP
+00BC89  1  20 E1 BF             JSR SET_COLOR
+00BC8C  1  A9 FF                LDA #$FF
+00BC8E  1  85 58               STA IS_WEAK_2
+00BC90  1  A9 09               LDA #$09
+00BC92  1  85 57               STA IS_WEAK
+00BC94  1               NEXT_0:
+00BC94  1  20 50 BD              JSR GET_RANDOM_SHAPE
+00BC97  1  20 78 BD             JSR INIT_SHAPE
+00BC9A  1                       ;JSR CORE_DISPLAY_LOOP
+00BC9A  1               ; MAIN_LOOP:
+00BC9A  1               ;         JSR GET_KEY
+00BC9A  1               ;         LDA IS_RESET
+00BC9A  1               
+00BC9A  1               ;         CMP #$FF
+00BC9A  1               ;         BEQ START
+00BC9A  1               ;         LDA IS_STOP
+00BC9A  1               ;         CMP #$FF
+00BC9A  1               ;         BEQ NEXT
+00BC9A  1               
+00BC9A  1               ;         JMP MAIN_LOOP
+00BC9A  1               
+00BC9A  1               
+00BC9A  1               DELAY:
+00BC9A  1  A9 00               LDA #$00
+00BC9C  1  C5 57               CMP IS_WEAK
+00BC9E  1  F0 21               BEQ OVER_DELAY
+00BCA0  1                      ;DEC IS_WEAK
+00BCA0  1               
+00BCA0  1                DELAY_1:
+00BCA0  1  C5 58               CMP IS_WEAK_2
+00BCA2  1  F0 14               BEQ DELAY_2
+00BCA4  1  C6 58               DEC IS_WEAK_2
+00BCA6  1               
+00BCA6  1  20 DD BC             JSR GET_KEY
+00BCA9  1  A5 29                LDA IS_RESET
+00BCAB  1               
+00BCAB  1  C9 FF                CMP #$FF
+00BCAD  1  F0 D7                BEQ START
+00BCAF  1  A5 35                LDA IS_STOP
+00BCB1  1  C9 FF                CMP #$FF
+00BCB3  1  F0 16                BEQ NEXT
+00BCB5  1               
+00BCB5  1  4C A0 BC            JMP DELAY_1
+00BCB8  1               DELAY_2:
+00BCB8  1  A9 FF               LDA #$FF
+00BCBA  1  85 58               STA IS_WEAK_2
+00BCBC  1  C6 57               DEC IS_WEAK
+00BCBE  1  4C 9A BC            JMP DELAY
+00BCC1  1               OVER_DELAY:
+00BCC1  1  20 05 BD            JSR DOWN
+00BCC4  1  A9 09               LDA #$09
+00BCC6  1  85 57               STA IS_WEAK
+00BCC8  1  4C 9A BC            JMP DELAY
+00BCCB  1               
+00BCCB  1               
 00BCCB  1               
 00BCCB  1                NEXT:
 00BCCB  1               
 00BCCB  1  20 4C BF           JSR CHECK_LOOP
-00BCCE  1  4C B3 BC           JMP NEXT_0
+00BCCE  1  4C 94 BC           JMP NEXT_0
 00BCD1  1               
 00BCD1  1               
 00BCD1  1               

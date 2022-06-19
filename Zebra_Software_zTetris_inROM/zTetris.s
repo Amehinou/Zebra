@@ -1,7 +1,7 @@
 ;
 ;         zTetris 
 ;
-.org $BCAD
+.org $BC86
 
 
 
@@ -36,15 +36,44 @@ CHECK_LINE = $53
 MOVE_L = $54
 MOVE_H = $55
 MOVE_LINE = $56
+IS_WEAK = $57
+IS_WEAK_2 = $58
 
 START:
         JSR INIT_MAP
         JSR SET_COLOR
+        LDA #$FF
+       STA IS_WEAK_2
+       LDA #$09
+       STA IS_WEAK
 NEXT_0:
          JSR GET_RANDOM_SHAPE
         JSR INIT_SHAPE
         ;JSR CORE_DISPLAY_LOOP
-MAIN_LOOP:     
+; MAIN_LOOP:     
+;         JSR GET_KEY
+;         LDA IS_RESET
+
+;         CMP #$FF
+;         BEQ START
+;         LDA IS_STOP
+;         CMP #$FF
+;         BEQ NEXT
+
+;         JMP MAIN_LOOP
+
+
+DELAY: 
+       LDA #$00
+       CMP IS_WEAK
+       BEQ OVER_DELAY
+       ;DEC IS_WEAK
+       
+ DELAY_1:    
+       CMP IS_WEAK_2
+       BEQ DELAY_2
+       DEC IS_WEAK_2
+
         JSR GET_KEY
         LDA IS_RESET
 
@@ -54,9 +83,19 @@ MAIN_LOOP:
         CMP #$FF
         BEQ NEXT
 
-        
+       JMP DELAY_1
+DELAY_2:
+       LDA #$FF
+       STA IS_WEAK_2
+       DEC IS_WEAK
+       JMP DELAY
+OVER_DELAY:
+       JSR DOWN
+       LDA #$09
+       STA IS_WEAK
+       JMP DELAY
 
-        JMP MAIN_LOOP
+
 
  NEXT:
 
