@@ -194,7 +194,7 @@ extern "C" {
         Serial.write(data);
         Serial.write(0xF2);
       }else if ((addr >= 0x7130) && (addr < 0x7310)){  // BLK
-        delay(5);
+        delay(2);
         Serial.write(0xF3);
         if((addr-0x7130) <= 0xff){
             if((addr-0x7130) <= 0x80){
@@ -278,6 +278,7 @@ extern "C" {
   }
 
    void insVRAM(uint8_t ins) {
+  
     Serial.write(ins);
     
   }

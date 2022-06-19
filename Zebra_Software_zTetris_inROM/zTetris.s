@@ -1,7 +1,16 @@
 ;
 ;         zTetris 
 ;
-.org $BEC3
+.org $BE3C
+
+
+ROTATE_PAD_0: .byte $18,$42,$18,$42
+ROTATE_PAD_1: .byte $38,$C2,$1C,$43
+ROTATE_PAD_2: .byte $98,$46,$19,$62
+ROTATE_PAD_3: .byte $0E,$0E,$0E,$0E
+ROTATE_PAD_4: .byte $D0,$4C,$0B,$32
+ROTATE_PAD_5: .byte $58,$4A,$1A,$52
+ROTATE_PAD_6: .byte $68,$8A,$16,$51
 
 POINT_L = $20
 POINT_H = $21
@@ -12,29 +21,40 @@ NOW_POINT_L = $23
 NOW_POINT_H = $24
 
 IS_CLEAR = $25
-NOW_PIVOT = $26
-
-; SHAPE_PAD: .byte 
-; 0_ROTATE_PAD: .byte '0x18','0x42'
-; 1_ROTATE_PAD: .byte '0x19'
+ROTATE_NUM = $26
+PIVOT_VEC = $27
+IS_RESET = $29
+IS_DOWN_BLK_EXIST = $30
+IS_DOWN_BLK_SELF = $31
 
 START:
-        JSR INIT
+        JSR INIT_MAP
+        JSR GET_RANDOM_SHAPE
         JSR INIT_SHAPE
-        ;==============================
-       
-        ;===============================
         JSR CORE_DISPLAY_LOOP
+MAIN_LOOP:     
+        JSR GET_KEY
+        LDA IS_RESET
+        CMP #$FF
+        BEQ START
+        JMP MAIN_LOOP
+
+CLS_OLD_SHAPE:
+        LDA #$FF
+        STA IS_CLEAR
+        JSR CORE_DISPLAY_LOOP
+        LDA #$00
+        STA IS_CLEAR
+        RTS
 
 
- GET_KEY:
+GET_KEY:
        
 
-    ;    CMP #'w'
-    ;    BEQ ROTATE
+    
        LDA $8001
        CMP #$00
-       BEQ GET_KEY
+       BEQ GET_RTS
 
        CMP #'s'
        BEQ DOWN
@@ -42,17 +62,16 @@ START:
        BEQ LEFT
        CMP #'d'
        BEQ RIGHT
+       CMP #'w'
+       BEQ ROTATE
+       CMP #'r'
+       BEQ RESET
 
+GET_RTS:    RTS
 
 DOWN:
         
-
-        LDA #$FF
-        STA IS_CLEAR
-        JSR CORE_DISPLAY_LOOP
-        LDA #$00
-        STA IS_CLEAR
-
+        JSR CLS_OLD_SHAPE
         LDA NOW_POINT_L
         CLC
         ADC #$18
@@ -62,24 +81,86 @@ DOWN_1:
         STA NOW_POINT_L
        
         JSR CORE_DISPLAY_LOOP
-        JMP GET_KEY
+        RTS
 LEFT:
+        JSR CLS_OLD_SHAPE
+        DEC NOW_POINT_L
+        JSR CORE_DISPLAY_LOOP
+        RTS
+
 RIGHT:
+        JSR CLS_OLD_SHAPE
+        INC NOW_POINT_L
+        JSR CORE_DISPLAY_LOOP
+        RTS
+
+ROTATE:
+        JSR CLS_OLD_SHAPE
+        LDA ROTATE_NUM
+        CMP #$03
+        BEQ ROTATE_0
+        INC ROTATE_NUM
+        JMP ROTATE_1
+ROTATE_0:
+        LDA #$00
+        STA ROTATE_NUM
+
+ROTATE_1: 
+        JSR CORE_DISPLAY_LOOP
+        RTS
+
+RESET:
+        LDA #$FF
+        STA IS_RESET
+        RTS
+
+        
+GET_RANDOM_SHAPE:
+        LDA #<ROTATE_PAD_0
+        STA PIVOT_VEC
+        LDA #>ROTATE_PAD_0
+        STA PIVOT_VEC+1
+
+RANDOM:
+        LDX #$00
+        LDA $8003
+        AND #$07
+        CMP #$07
+        BEQ RANDOM
+
+        TAY
+GET_RANDOM_SHAPE_0:
+        LDA PIVOT_VEC
+        CPY #$00
+        BEQ GET_RANDOM_SHAPE_1
+        CLC
+        ADC #$04
+        STA PIVOT_VEC
+        DEY
+        JMP GET_RANDOM_SHAPE_0
+GET_RANDOM_SHAPE_1:
+        RTS
+
+
+
 
 
 INIT_SHAPE:
-         LDA #$4D
+        LDA #$4D
         STA POINT_L
         STA NOW_POINT_L
         LDA #$71
         STA POINT_H
         STA NOW_POINT_H
         JSR SHAPE_DISPLAY
-        LDA #$C2             ;debug
-        STA PIVOT
-        STA NOW_PIVOT
+       
+        ;STA NOW_PIVOT
         LDA #$00
         STA IS_CLEAR
+        STA ROTATE_NUM
+        STA IS_RESET
+
+        
 
         RTS
 
@@ -100,7 +181,7 @@ INIT_DISPLAY_0:
         STA (POINT_L),Y
         RTS
 
-INIT:  
+INIT_MAP:  
         LDA #$81
         STA $8020
 
@@ -167,96 +248,15 @@ SHAPE_2:
 
 
 
-; DISPLAY_SHAPE:
 
-;         LDA NOW_POINT_L
-;         STA POINT_L
-;         LDA NOW_POINT_H
-;         STA POINT_H
-
-;         ;0
-;         LDA POINT_L    
-;         SEC 
-;         SBC #$18
-;         BCS D0_1
-;         DEC POINT_H
-; D0_1:    STA POINT_L
-;         DEC POINT_L   ;-1
-
-;         CLC
-;         LSR PIVOT
-;         BCC D1
-;         JSR SHAPE_DISPLAY
-
-;         ;1
-; D1:     INC POINT_L
-;         LSR PIVOT
-;         BCC D2
-;         JSR SHAPE_DISPLAY
-
-;         ;2
-; D2:        INC POINT_L
-;         LSR PIVOT
-;         BCC D3
-;      JSR SHAPE_DISPLAY
-
-;         ;3
-; D3:     LDA NOW_POINT_L
-;         STA POINT_L
-;         DEC POINT_L
-;         CLC
-;         LSR PIVOT
-;         BCC D4
-;      JSR SHAPE_DISPLAY
-
-;         ;C
-;         INC POINT_L
-;         JSR SHAPE_DISPLAY
-
-;         ;4
-; D4:       
-;         INC POINT_L
-;         LSR PIVOT
-;         BCC D5
-;      JSR SHAPE_DISPLAY
-
-; ;         ;5
-; ; D5:     LDA NOW_POINT_L
-; ;         CLC
-; ;         ADC #$18
-; ;         BCC D5_1
-; ;         INC POINT_H
-; ; D5_1:    STA POINT_L
-
-; ;         CLC
-; ;         LSR PIVOT
-; ;         BCC D6
-; ;      JSR SHAPE_DISPLAY
-
-;         ;6
-;  D6:       INC POINT_L
-;         LSR PIVOT
-;         BCC D7
-;         JSR SHAPE_DISPLAY
-
-;         ;7
-;         INC POINT_L
-;         LSR PIVOT
-;         BCC D7
-;         JSR SHAPE_DISPLAY
-
-; D7:        RTS
-
-
-;==============================
 
 CORE_DISPLAY_LOOP:
-
+        LDY ROTATE_NUM
         LDA NOW_POINT_L
         STA POINT_L
         LDA NOW_POINT_H
         STA POINT_H
-        LDA NOW_PIVOT
+        LDA (PIVOT_VEC),Y
         STA PIVOT
 
 
@@ -335,3 +335,7 @@ D7:
         JSR SHAPE_DISPLAY
 
 DEND:   RTS
+
+
+CHECK_GAME_OVER:
+       
