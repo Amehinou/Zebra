@@ -1,9 +1,16 @@
 ;
 ;         zTetris 
 ;
-.org $BD6F
+.org $BE3F
 
 
+ROTATE_PAD_0: .byte $18,$42,$18,$42
+ROTATE_PAD_1: .byte $38,$C2,$1C,$43
+ROTATE_PAD_2: .byte $98,$46,$19,$62
+ROTATE_PAD_3: .byte $0E,$0E,$0E,$0E
+ROTATE_PAD_4: .byte $D0,$4C,$0B,$32
+ROTATE_PAD_5: .byte $58,$4A,$1A,$52
+ROTATE_PAD_6: .byte $68,$8A,$16,$51
 
 POINT_L = $20
 POINT_H = $21
@@ -20,18 +27,9 @@ IS_RESET = $29
 IS_DOWN_BLK_EXIST = $30
 IS_DOWN_BLK_SELF = $31
 
-
-
-IS_DOWN = $32
-NEXT_POINT_L = $33
-NEXT_POINT_H = $34
-IS_STOP = $35
-IS_FIRST = $36
-IS_INNER_BLK = $37
-
 START:
         JSR INIT_MAP
-NEXT:   JSR GET_RANDOM_SHAPE
+        JSR GET_RANDOM_SHAPE
         JSR INIT_SHAPE
         ;JSR CORE_DISPLAY_LOOP
 MAIN_LOOP:     
@@ -39,18 +37,7 @@ MAIN_LOOP:
         LDA IS_RESET
         CMP #$FF
         BEQ START
-        LDA IS_STOP
-        CMP #$FF
-        BEQ NEXT
         JMP MAIN_LOOP
-
-;  NEXT:
-
-;  LDA #$01
-;      STA $8008
-;      JMP START
-        
-
 
 CLS_OLD_SHAPE:
         LDA #$FF
@@ -79,23 +66,12 @@ GET_KEY:
        BEQ ROTATE
        CMP #'r'
        BEQ RESET
-       CMP #'f'
-       BEQ F1
 
 GET_RTS:    RTS
-
-F1:
-     LDA #$01
-     STA $8008
-     JMP GET_RTS
 
 DOWN:
         
         JSR CLS_OLD_SHAPE
-
-        LDA #$FF
-        STA IS_DOWN
-
         LDA NOW_POINT_L
         CLC
         ADC #$18
@@ -130,19 +106,13 @@ ROTATE_0:
         STA ROTATE_NUM
 
 ROTATE_1: 
-        LDA #$FF
-        STA IS_FIRST
         JSR CORE_DISPLAY_LOOP
-        LDA #$00
-        STA IS_FIRST
         RTS
 
 RESET:
         LDA #$FF
         STA IS_RESET
         RTS
-
-
 
         
 GET_RANDOM_SHAPE:
@@ -165,15 +135,11 @@ GET_RANDOM_SHAPE_0:
         BEQ GET_RANDOM_SHAPE_1
         CLC
         ADC #$04
-        BCC GET_RANDOM_SHAPE_2
-        INC PIVOT_VEC+1
-GET_RANDOM_SHAPE_2:
         STA PIVOT_VEC
         DEY
         JMP GET_RANDOM_SHAPE_0
 GET_RANDOM_SHAPE_1:
         RTS
-
 
 
 
@@ -193,23 +159,9 @@ INIT_SHAPE:
         STA IS_CLEAR
         STA ROTATE_NUM
         STA IS_RESET
-        STA IS_DOWN
-        STA IS_STOP
-        STA IS_INNER_BLK
-        STA IS_INNER_BLK+1
-        STA IS_INNER_BLK+2
-        STA IS_INNER_BLK+3
-        STA IS_INNER_BLK+4
-        STA IS_INNER_BLK+5
-        STA IS_INNER_BLK+6
-        STA IS_INNER_BLK+7
 
-
-        LDA #$FF
-        STA IS_FIRST
         JSR CORE_DISPLAY_LOOP
-        LDA #$00
-        STA IS_FIRST
+
         RTS
 
 
@@ -232,9 +184,6 @@ INIT_DISPLAY_0:
 INIT_MAP:  
         LDA #$81
         STA $8020
-
-        ; LDA #$01
-        ; STA $8008
 
         LDA #$30
         STA POINT_L
@@ -302,7 +251,6 @@ SHAPE_2:
 
 
 CORE_DISPLAY_LOOP:
-        
         LDY ROTATE_NUM
         LDA NOW_POINT_L
         STA POINT_L
@@ -311,59 +259,33 @@ CORE_DISPLAY_LOOP:
         LDA (PIVOT_VEC),Y
         STA PIVOT
 
-        LDX #$00
+
  ;0
 D0:     LDA POINT_L
         CLC
         ADC #$18
         BCC D0_1
         INC POINT_H
-D0_1:   
+D0_1:   STA POINT_L
         DEC POINT_L
-        STA POINT_L
         CLC
         LSR PIVOT
         BCC D1
-        JSR SHAPE_DISPLAY
-;===============================
-        
-        JSR CHECK_0_2
-        
-
-;===========================================
-     
+     JSR SHAPE_DISPLAY
 
         ;1
- D1:    
-        INX
-        INC POINT_L
+ D1:    INC POINT_L
         LSR PIVOT
         BCC D2
         JSR SHAPE_DISPLAY
-;=============================
-       
-        JSR CHECK_0_2
-        
-
-;===========================================
-        
 
         ;2
-D2:     
-        INX
-        INC POINT_L
+D2:     INC POINT_L
         LSR PIVOT
         BCC D3
         JSR SHAPE_DISPLAY
-;===========================
-        
-        JSR CHECK_0_2
-        
-;===========================================
-
-        
         ;3
-D3:     INX
+D3:     
         LDA POINT_L    
         SEC 
         SBC #$18
@@ -375,40 +297,18 @@ D3_1:   STA POINT_L
         LSR PIVOT
         BCC DC
         JSR SHAPE_DISPLAY
-        ;===============================
-        
-        JSR CHECK_3_7
-        
 
-;===========================================
-        
-
-DC:     INX
+DC:
         DEC POINT_L
         JSR SHAPE_DISPLAY
-          ;===============================
-        
-        JSR CHECK_3_7
-        
 
-;===========================================
-        
-
-
-D4:     INX
+D4:
         DEC POINT_L
         LSR PIVOT
         BCC D5
-         JSR SHAPE_DISPLAY
-          ;===============================
-        
-        JSR CHECK_3_7
-       
+        JSR SHAPE_DISPLAY
 
-;===========================================
-       
-
-D5:     INX
+D5:
         LDA POINT_L    
         SEC 
         SBC #$18
@@ -420,143 +320,21 @@ D5_1:   STA POINT_L
         LSR PIVOT
         BCC D6
         JSR SHAPE_DISPLAY
-          ;===============================
-        
-        JSR CHECK_3_7
-       
-
-;===========================================
-        
 
 
-D6:     INX
+D6:
         INC POINT_L
         LSR PIVOT
         BCC D7
-         JSR SHAPE_DISPLAY
-          ;===============================
-        
-        ;JSR CHECK_3_7
-        
+        JSR SHAPE_DISPLAY
 
-;===========================================
-       
-
-D7:     INX
+D7:
         INC POINT_L
         LSR PIVOT
         BCC DEND
         JSR SHAPE_DISPLAY
-          ;===============================
-        
-        JSR CHECK_3_7
-       
 
-;===========================================
-        
-
-DEND:   
-        
-        RTS
+DEND:   RTS
 
 
-
-
- GET_NEXT_ADDRESS:
-        
-
-        LDA POINT_L
-        STA NEXT_POINT_L
-        LDA POINT_H
-        STA NEXT_POINT_H
-        LDA NEXT_POINT_L
-        CLC
-        ADC #$18
-        BCC ADDRESS_1
-        INC NEXT_POINT_H
-ADDRESS_1:
-        STA NEXT_POINT_L
-        RTS
-
-
-CHECK_0_2:
-        
-        JSR GET_NEXT_ADDRESS
-        LDA IS_CLEAR
-        CMP #$FF
-        BEQ  NO_STOP
-        LDA IS_FIRST
-        CMP #$FF
-        BEQ  NO_STOP
-        
-        LDY #$00
-        LDA (NEXT_POINT_L),Y
-        CMP #$1F 
-        BEQ STOP 
-        RTS
-STOP:
-        LDA #$FF
-        STA IS_STOP
-NO_STOP:       RTS
-
-
-CHECK_3_7:
-
-        
-        JSR GET_NEXT_ADDRESS
-        LDA IS_CLEAR
-        CMP #$FF
-        BEQ  NO_STOP
-        
-        LDA IS_FIRST
-        CMP #$FF
-        BEQ SET_INNER
-
-        JMP CHECK_3_7_1   
-
-SET_INNER:
-        LDY #$00
-        LDA (NEXT_POINT_L),Y
-        CMP #$1F 
-        BEQ SET_INNER_1
-        JMP SET_INNER_2
-
-SET_INNER_1:
-        LDA #$FF
-        STA IS_INNER_BLK,X
-        JMP SET_INNER_3
-
-SET_INNER_2:
-        LDA #$00
-        STA IS_INNER_BLK,X
- SET_INNER_3:
-        RTS
-
-CHECK_3_7_1:
-        LDA IS_INNER_BLK,X
-        CMP #$FF
-        BEQ SET_NO_STOP
-
-        LDY #$00
-        LDA (NEXT_POINT_L),Y
-        CMP #$1F 
-        BEQ SETP_0
-        JMP SET_NO_STOP 
-SETP_0:   
-        LDA #$FF
-        STA IS_STOP
-        
-SET_NO_STOP:
-        
-        RTS
-
-        
-
-ROTATE_PAD_0: .byte $18,$42,$18,$42
-ROTATE_PAD_1: .byte $38,$C2,$1C,$43
-ROTATE_PAD_2: .byte $98,$46,$19,$62
-ROTATE_PAD_3: .byte $0E,$0E,$0E,$0E
-ROTATE_PAD_4: .byte $D0,$4C,$0B,$32
-ROTATE_PAD_5: .byte $58,$4A,$1A,$52
-ROTATE_PAD_6: .byte $68,$8A,$16,$51
-
+CHECK_GAME_OVER:

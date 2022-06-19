@@ -5,339 +5,563 @@ Current file: zTetris.s
 000000r 1               ;
 000000r 1               ;         zTetris
 000000r 1               ;
-000000r 1               .org $BE3C
-00BE3C  1               
-00BE3C  1               
-00BE3C  1  18 42 18 42  ROTATE_PAD_0: .byte $18,$42,$18,$42
-00BE40  1  38 C2 1C 43  ROTATE_PAD_1: .byte $38,$C2,$1C,$43
-00BE44  1  98 46 19 62  ROTATE_PAD_2: .byte $98,$46,$19,$62
-00BE48  1  0E 0E 0E 0E  ROTATE_PAD_3: .byte $0E,$0E,$0E,$0E
-00BE4C  1  D0 4C 0B 32  ROTATE_PAD_4: .byte $D0,$4C,$0B,$32
-00BE50  1  58 4A 1A 52  ROTATE_PAD_5: .byte $58,$4A,$1A,$52
-00BE54  1  68 8A 16 51  ROTATE_PAD_6: .byte $68,$8A,$16,$51
-00BE58  1               
-00BE58  1               POINT_L = $20
-00BE58  1               POINT_H = $21
-00BE58  1               
-00BE58  1               PIVOT = $22
-00BE58  1               
-00BE58  1               NOW_POINT_L = $23
-00BE58  1               NOW_POINT_H = $24
-00BE58  1               
-00BE58  1               IS_CLEAR = $25
-00BE58  1               ROTATE_NUM = $26
-00BE58  1               PIVOT_VEC = $27
-00BE58  1               IS_RESET = $29
-00BE58  1               
-00BE58  1               START:
-00BE58  1  20 27 BF             JSR INIT_MAP
-00BE5B  1  20 D7 BE             JSR GET_RANDOM_SHAPE
-00BE5E  1  20 FB BE             JSR INIT_SHAPE
-00BE61  1  20 84 BF             JSR CORE_DISPLAY_LOOP
-00BE64  1               MAIN_LOOP:
-00BE64  1  20 7C BE             JSR GET_KEY
-00BE67  1  A5 29                LDA IS_RESET
-00BE69  1  C9 FF                CMP #$FF
-00BE6B  1  F0 EB                BEQ START
-00BE6D  1  4C 64 BE             JMP MAIN_LOOP
-00BE70  1               
-00BE70  1               CLS_OLD_SHAPE:
-00BE70  1  A9 FF                LDA #$FF
-00BE72  1  85 25                STA IS_CLEAR
-00BE74  1  20 84 BF             JSR CORE_DISPLAY_LOOP
-00BE77  1  A9 00                LDA #$00
-00BE79  1  85 25                STA IS_CLEAR
-00BE7B  1  60                   RTS
-00BE7C  1               
-00BE7C  1               
-00BE7C  1               GET_KEY:
-00BE7C  1               
-00BE7C  1               
-00BE7C  1               
-00BE7C  1  AD 01 80            LDA $8001
-00BE7F  1  C9 00               CMP #$00
-00BE81  1  F0 14               BEQ GET_RTS
-00BE83  1               
-00BE83  1  C9 73               CMP #'s'
-00BE85  1  F0 11               BEQ DOWN
-00BE87  1  C9 61               CMP #'a'
-00BE89  1  F0 1F               BEQ LEFT
-00BE8B  1  C9 64               CMP #'d'
-00BE8D  1  F0 24               BEQ RIGHT
-00BE8F  1  C9 77               CMP #'w'
-00BE91  1  F0 29               BEQ ROTATE
-00BE93  1  C9 72               CMP #'r'
-00BE95  1  F0 3B               BEQ RESET
-00BE97  1               
-00BE97  1  60           GET_RTS:    RTS
-00BE98  1               
-00BE98  1               DOWN:
-00BE98  1               
-00BE98  1  20 70 BE             JSR CLS_OLD_SHAPE
-00BE9B  1  A5 23                LDA NOW_POINT_L
-00BE9D  1  18                   CLC
-00BE9E  1  69 18                ADC #$18
-00BEA0  1  90 02                BCC DOWN_1
-00BEA2  1  E6 24                INC NOW_POINT_H
-00BEA4  1               DOWN_1:
-00BEA4  1  85 23                STA NOW_POINT_L
-00BEA6  1               
-00BEA6  1  20 84 BF             JSR CORE_DISPLAY_LOOP
-00BEA9  1  60                   RTS
-00BEAA  1               LEFT:
-00BEAA  1  20 70 BE             JSR CLS_OLD_SHAPE
-00BEAD  1  C6 23                DEC NOW_POINT_L
-00BEAF  1  20 84 BF             JSR CORE_DISPLAY_LOOP
-00BEB2  1  60                   RTS
-00BEB3  1               
-00BEB3  1               RIGHT:
-00BEB3  1  20 70 BE             JSR CLS_OLD_SHAPE
-00BEB6  1  E6 23                INC NOW_POINT_L
-00BEB8  1  20 84 BF             JSR CORE_DISPLAY_LOOP
-00BEBB  1  60                   RTS
-00BEBC  1               
-00BEBC  1               ROTATE:
-00BEBC  1  20 70 BE             JSR CLS_OLD_SHAPE
-00BEBF  1  A5 26                LDA ROTATE_NUM
-00BEC1  1  C9 03                CMP #$03
-00BEC3  1  F0 05                BEQ ROTATE_0
-00BEC5  1  E6 26                INC ROTATE_NUM
-00BEC7  1  4C CE BE             JMP ROTATE_1
-00BECA  1               ROTATE_0:
-00BECA  1  A9 00                LDA #$00
-00BECC  1  85 26                STA ROTATE_NUM
-00BECE  1               
-00BECE  1               ROTATE_1:
-00BECE  1  20 84 BF             JSR CORE_DISPLAY_LOOP
-00BED1  1  60                   RTS
-00BED2  1               
-00BED2  1               RESET:
-00BED2  1  A9 FF                LDA #$FF
-00BED4  1  85 29                STA IS_RESET
-00BED6  1  60                   RTS
-00BED7  1               
-00BED7  1               
-00BED7  1               GET_RANDOM_SHAPE:
-00BED7  1  A9 3C                LDA #<ROTATE_PAD_0
-00BED9  1  85 27                STA PIVOT_VEC
-00BEDB  1  A9 BE                LDA #>ROTATE_PAD_0
-00BEDD  1  85 28                STA PIVOT_VEC+1
-00BEDF  1               
-00BEDF  1               RANDOM:
-00BEDF  1  A2 00                LDX #$00
-00BEE1  1  AD 03 80             LDA $8003
-00BEE4  1  29 07                AND #$07
-00BEE6  1  C9 07                CMP #$07
-00BEE8  1  F0 F5                BEQ RANDOM
-00BEEA  1               
-00BEEA  1  A8                   TAY
-00BEEB  1               GET_RANDOM_SHAPE_0:
-00BEEB  1  A5 27                LDA PIVOT_VEC
-00BEED  1  C0 00                CPY #$00
-00BEEF  1  F0 09                BEQ GET_RANDOM_SHAPE_1
-00BEF1  1  18                   CLC
-00BEF2  1  69 04                ADC #$04
-00BEF4  1  85 27                STA PIVOT_VEC
-00BEF6  1  88                   DEY
-00BEF7  1  4C EB BE             JMP GET_RANDOM_SHAPE_0
-00BEFA  1               GET_RANDOM_SHAPE_1:
-00BEFA  1  60                   RTS
+000000r 1               .org $BD6F
+00BD6F  1               
+00BD6F  1               
+00BD6F  1               
+00BD6F  1               POINT_L = $20
+00BD6F  1               POINT_H = $21
+00BD6F  1               
+00BD6F  1               PIVOT = $22
+00BD6F  1               
+00BD6F  1               NOW_POINT_L = $23
+00BD6F  1               NOW_POINT_H = $24
+00BD6F  1               
+00BD6F  1               IS_CLEAR = $25
+00BD6F  1               ROTATE_NUM = $26
+00BD6F  1               PIVOT_VEC = $27
+00BD6F  1               IS_RESET = $29
+00BD6F  1               IS_DOWN_BLK_EXIST = $30
+00BD6F  1               IS_DOWN_BLK_SELF = $31
+00BD6F  1               
+00BD6F  1               
+00BD6F  1               
+00BD6F  1               IS_DOWN = $32
+00BD6F  1               NEXT_POINT_L = $33
+00BD6F  1               NEXT_POINT_H = $34
+00BD6F  1               IS_STOP = $35
+00BD6F  1               IS_FIRST = $36
+00BD6F  1               IS_INNER_BLK = $37
+00BD6F  1               
+00BD6F  1               START:
+00BD6F  1  20 79 BE             JSR INIT_MAP
+00BD72  1  20 09 BE     NEXT:   JSR GET_RANDOM_SHAPE
+00BD75  1  20 31 BE             JSR INIT_SHAPE
+00BD78  1                       ;JSR CORE_DISPLAY_LOOP
+00BD78  1               MAIN_LOOP:
+00BD78  1  20 96 BD             JSR GET_KEY
+00BD7B  1  A5 29                LDA IS_RESET
+00BD7D  1  C9 FF                CMP #$FF
+00BD7F  1  F0 EE                BEQ START
+00BD81  1  A5 35                LDA IS_STOP
+00BD83  1  C9 FF                CMP #$FF
+00BD85  1  F0 EB                BEQ NEXT
+00BD87  1  4C 78 BD             JMP MAIN_LOOP
+00BD8A  1               
+00BD8A  1               ;  NEXT:
+00BD8A  1               
+00BD8A  1               ;  LDA #$01
+00BD8A  1               ;      STA $8008
+00BD8A  1               ;      JMP START
+00BD8A  1               
+00BD8A  1               
+00BD8A  1               
+00BD8A  1               CLS_OLD_SHAPE:
+00BD8A  1  A9 FF                LDA #$FF
+00BD8C  1  85 25                STA IS_CLEAR
+00BD8E  1  20 D6 BE             JSR CORE_DISPLAY_LOOP
+00BD91  1  A9 00                LDA #$00
+00BD93  1  85 25                STA IS_CLEAR
+00BD95  1  60                   RTS
+00BD96  1               
+00BD96  1               
+00BD96  1               GET_KEY:
+00BD96  1               
+00BD96  1               
+00BD96  1               
+00BD96  1  AD 01 80            LDA $8001
+00BD99  1  C9 00               CMP #$00
+00BD9B  1  F0 18               BEQ GET_RTS
+00BD9D  1               
+00BD9D  1  C9 73               CMP #'s'
+00BD9F  1  F0 1D               BEQ DOWN
+00BDA1  1  C9 61               CMP #'a'
+00BDA3  1  F0 2F               BEQ LEFT
+00BDA5  1  C9 64               CMP #'d'
+00BDA7  1  F0 34               BEQ RIGHT
+00BDA9  1  C9 77               CMP #'w'
+00BDAB  1  F0 39               BEQ ROTATE
+00BDAD  1  C9 72               CMP #'r'
+00BDAF  1  F0 53               BEQ RESET
+00BDB1  1  C9 66               CMP #'f'
+00BDB3  1  F0 01               BEQ F1
+00BDB5  1               
+00BDB5  1  60           GET_RTS:    RTS
+00BDB6  1               
+00BDB6  1               F1:
+00BDB6  1  A9 01             LDA #$01
+00BDB8  1  8D 08 80          STA $8008
+00BDBB  1  4C B5 BD          JMP GET_RTS
+00BDBE  1               
+00BDBE  1               DOWN:
+00BDBE  1               
+00BDBE  1  20 8A BD             JSR CLS_OLD_SHAPE
+00BDC1  1               
+00BDC1  1  A9 FF                LDA #$FF
+00BDC3  1  85 32                STA IS_DOWN
+00BDC5  1               
+00BDC5  1  A5 23                LDA NOW_POINT_L
+00BDC7  1  18                   CLC
+00BDC8  1  69 18                ADC #$18
+00BDCA  1  90 02                BCC DOWN_1
+00BDCC  1  E6 24                INC NOW_POINT_H
+00BDCE  1               DOWN_1:
+00BDCE  1  85 23                STA NOW_POINT_L
+00BDD0  1               
+00BDD0  1  20 D6 BE             JSR CORE_DISPLAY_LOOP
+00BDD3  1  60                   RTS
+00BDD4  1               LEFT:
+00BDD4  1  20 8A BD             JSR CLS_OLD_SHAPE
+00BDD7  1  C6 23                DEC NOW_POINT_L
+00BDD9  1  20 D6 BE             JSR CORE_DISPLAY_LOOP
+00BDDC  1  60                   RTS
+00BDDD  1               
+00BDDD  1               RIGHT:
+00BDDD  1  20 8A BD             JSR CLS_OLD_SHAPE
+00BDE0  1  E6 23                INC NOW_POINT_L
+00BDE2  1  20 D6 BE             JSR CORE_DISPLAY_LOOP
+00BDE5  1  60                   RTS
+00BDE6  1               
+00BDE6  1               ROTATE:
+00BDE6  1  20 8A BD             JSR CLS_OLD_SHAPE
+00BDE9  1  A5 26                LDA ROTATE_NUM
+00BDEB  1  C9 03                CMP #$03
+00BDED  1  F0 05                BEQ ROTATE_0
+00BDEF  1  E6 26                INC ROTATE_NUM
+00BDF1  1  4C F8 BD             JMP ROTATE_1
+00BDF4  1               ROTATE_0:
+00BDF4  1  A9 00                LDA #$00
+00BDF6  1  85 26                STA ROTATE_NUM
+00BDF8  1               
+00BDF8  1               ROTATE_1:
+00BDF8  1  A9 FF                LDA #$FF
+00BDFA  1  85 36                STA IS_FIRST
+00BDFC  1  20 D6 BE             JSR CORE_DISPLAY_LOOP
+00BDFF  1  A9 00                LDA #$00
+00BE01  1  85 36                STA IS_FIRST
+00BE03  1  60                   RTS
+00BE04  1               
+00BE04  1               RESET:
+00BE04  1  A9 FF                LDA #$FF
+00BE06  1  85 29                STA IS_RESET
+00BE08  1  60                   RTS
+00BE09  1               
+00BE09  1               
+00BE09  1               
+00BE09  1               
+00BE09  1               GET_RANDOM_SHAPE:
+00BE09  1  A9 E4                LDA #<ROTATE_PAD_0
+00BE0B  1  85 27                STA PIVOT_VEC
+00BE0D  1  A9 BF                LDA #>ROTATE_PAD_0
+00BE0F  1  85 28                STA PIVOT_VEC+1
+00BE11  1               
+00BE11  1               RANDOM:
+00BE11  1  A2 00                LDX #$00
+00BE13  1  AD 03 80             LDA $8003
+00BE16  1  29 07                AND #$07
+00BE18  1  C9 07                CMP #$07
+00BE1A  1  F0 F5                BEQ RANDOM
+00BE1C  1               
+00BE1C  1  A8                   TAY
+00BE1D  1               GET_RANDOM_SHAPE_0:
+00BE1D  1  A5 27                LDA PIVOT_VEC
+00BE1F  1  C0 00                CPY #$00
+00BE21  1  F0 0D                BEQ GET_RANDOM_SHAPE_1
+00BE23  1  18                   CLC
+00BE24  1  69 04                ADC #$04
+00BE26  1  90 02                BCC GET_RANDOM_SHAPE_2
+00BE28  1  E6 28                INC PIVOT_VEC+1
+00BE2A  1               GET_RANDOM_SHAPE_2:
+00BE2A  1  85 27                STA PIVOT_VEC
+00BE2C  1  88                   DEY
+00BE2D  1  4C 1D BE             JMP GET_RANDOM_SHAPE_0
+00BE30  1               GET_RANDOM_SHAPE_1:
+00BE30  1  60                   RTS
+00BE31  1               
+00BE31  1               
+00BE31  1               
+00BE31  1               
+00BE31  1               
+00BE31  1               
+00BE31  1               INIT_SHAPE:
+00BE31  1  A9 4D                LDA #$4D
+00BE33  1  85 20                STA POINT_L
+00BE35  1  85 23                STA NOW_POINT_L
+00BE37  1  A9 71                LDA #$71
+00BE39  1  85 21                STA POINT_H
+00BE3B  1  85 24                STA NOW_POINT_H
+00BE3D  1               
+00BE3D  1               
+00BE3D  1                       ;STA NOW_PIVOT
+00BE3D  1  A9 00                LDA #$00
+00BE3F  1  85 25                STA IS_CLEAR
+00BE41  1  85 26                STA ROTATE_NUM
+00BE43  1  85 29                STA IS_RESET
+00BE45  1  85 32                STA IS_DOWN
+00BE47  1  85 35                STA IS_STOP
+00BE49  1  85 37                STA IS_INNER_BLK
+00BE4B  1  85 38                STA IS_INNER_BLK+1
+00BE4D  1  85 39                STA IS_INNER_BLK+2
+00BE4F  1  85 3A                STA IS_INNER_BLK+3
+00BE51  1  85 3B                STA IS_INNER_BLK+4
+00BE53  1  85 3C                STA IS_INNER_BLK+5
+00BE55  1  85 3D                STA IS_INNER_BLK+6
+00BE57  1  85 3E                STA IS_INNER_BLK+7
+00BE59  1               
+00BE59  1               
+00BE59  1  A9 FF                LDA #$FF
+00BE5B  1  85 36                STA IS_FIRST
+00BE5D  1  20 D6 BE             JSR CORE_DISPLAY_LOOP
+00BE60  1  A9 00                LDA #$00
+00BE62  1  85 36                STA IS_FIRST
+00BE64  1  60                   RTS
+00BE65  1               
+00BE65  1               
+00BE65  1               
+00BE65  1               INIT_DISPLAY:
+00BE65  1  A0 00                LDY #$00
+00BE67  1  A9 1F                LDA #$1F
+00BE69  1  91 20                STA (POINT_L),Y
+00BE6B  1  A0 0C                LDY #$0C
+00BE6D  1  91 20                STA (POINT_L),Y
+00BE6F  1  A0 00                LDY #$00
+00BE71  1  60                   RTS
+00BE72  1               
+00BE72  1               INIT_DISPLAY_0:
+00BE72  1  A0 00                LDY #$00
+00BE74  1  A9 1F                LDA #$1F
+00BE76  1  91 20                STA (POINT_L),Y
+00BE78  1  60                   RTS
+00BE79  1               
+00BE79  1               INIT_MAP:
+00BE79  1  A9 81                LDA #$81
+00BE7B  1  8D 20 80             STA $8020
+00BE7E  1               
+00BE7E  1                       ; LDA #$01
+00BE7E  1                       ; STA $8008
+00BE7E  1               
+00BE7E  1  A9 30                LDA #$30
+00BE80  1  85 20                STA POINT_L
+00BE82  1  A9 71                LDA #$71
+00BE84  1  85 21                STA POINT_H
+00BE86  1               
+00BE86  1  A0 00                LDY #$00
+00BE88  1  A2 00                LDX #$00
+00BE8A  1               INIT_0:
+00BE8A  1  20 65 BE             JSR INIT_DISPLAY
+00BE8D  1  18                   CLC
+00BE8E  1  A5 20                LDA POINT_L
+00BE90  1  69 18                ADC #$18
+00BE92  1  85 20                STA POINT_L
+00BE94  1               
+00BE94  1               
+00BE94  1  A5 20                LDA POINT_L
+00BE96  1  C9 08                CMP #$08
+00BE98  1  D0 02                BNE INIT_1
+00BE9A  1  E6 21                INC POINT_H
+00BE9C  1               
+00BE9C  1               INIT_1:
+00BE9C  1  E8                   INX
+00BE9D  1  8A                   TXA
+00BE9E  1  C9 14                CMP #$14
+00BEA0  1  D0 E8                BNE INIT_0
+00BEA2  1               
+00BEA2  1  A2 00                LDX #$00
+00BEA4  1  A9 F7                LDA #$F7
+00BEA6  1  85 20                STA POINT_L
+00BEA8  1  A9 72                LDA #$72
+00BEAA  1  85 21                STA POINT_H
+00BEAC  1               INIT_2:
+00BEAC  1  A5 20                LDA POINT_L
+00BEAE  1  69 01                ADC #$01
+00BEB0  1  85 20                STA POINT_L
+00BEB2  1  20 72 BE             JSR INIT_DISPLAY_0
+00BEB5  1  A5 20                LDA POINT_L
+00BEB7  1  C9 FF                CMP #$FF
+00BEB9  1  D0 02                BNE INIT_3
+00BEBB  1  E6 21                INC POINT_H
+00BEBD  1                INIT_3:
+00BEBD  1  E8                   INX
+00BEBE  1  8A                   TXA
+00BEBF  1  C9 0C                CMP #$0C
+00BEC1  1  D0 E9                BNE INIT_2
+00BEC3  1               
+00BEC3  1  60                   RTS
+00BEC4  1               
+00BEC4  1               SHAPE_DISPLAY:
+00BEC4  1  A0 00                LDY #$00
+00BEC6  1  A5 25                LDA IS_CLEAR
+00BEC8  1  C9 FF                CMP #$FF
+00BECA  1  D0 05                BNE SHAPE_1
+00BECC  1  A9 00                LDA #$00
+00BECE  1  4C D3 BE             JMP SHAPE_2
+00BED1  1               SHAPE_1:
+00BED1  1  A9 1F                LDA #$1F
+00BED3  1               SHAPE_2:
+00BED3  1  91 20                STA (POINT_L),Y
+00BED5  1  60                   RTS
+00BED6  1               
+00BED6  1               
+00BED6  1               
+00BED6  1               
+00BED6  1               
+00BED6  1               CORE_DISPLAY_LOOP:
+00BED6  1               
+00BED6  1  A4 26                LDY ROTATE_NUM
+00BED8  1  A5 23                LDA NOW_POINT_L
+00BEDA  1  85 20                STA POINT_L
+00BEDC  1  A5 24                LDA NOW_POINT_H
+00BEDE  1  85 21                STA POINT_H
+00BEE0  1  B1 27                LDA (PIVOT_VEC),Y
+00BEE2  1  85 22                STA PIVOT
+00BEE4  1               
+00BEE4  1  A2 00                LDX #$00
+00BEE6  1                ;0
+00BEE6  1  A5 20        D0:     LDA POINT_L
+00BEE8  1  18                   CLC
+00BEE9  1  69 18                ADC #$18
+00BEEB  1  90 02                BCC D0_1
+00BEED  1  E6 21                INC POINT_H
+00BEEF  1               D0_1:
+00BEEF  1  C6 20                DEC POINT_L
+00BEF1  1  85 20                STA POINT_L
+00BEF3  1  18                   CLC
+00BEF4  1  46 22                LSR PIVOT
+00BEF6  1  90 06                BCC D1
+00BEF8  1  20 C4 BE             JSR SHAPE_DISPLAY
+00BEFB  1               ;===============================
 00BEFB  1               
-00BEFB  1               
-00BEFB  1               
-00BEFB  1               
-00BEFB  1               
-00BEFB  1               INIT_SHAPE:
-00BEFB  1  A9 4D                LDA #$4D
-00BEFD  1  85 20                STA POINT_L
-00BEFF  1  85 23                STA NOW_POINT_L
-00BF01  1  A9 71                LDA #$71
-00BF03  1  85 21                STA POINT_H
-00BF05  1  85 24                STA NOW_POINT_H
-00BF07  1  20 72 BF             JSR SHAPE_DISPLAY
-00BF0A  1               
-00BF0A  1                       ;STA NOW_PIVOT
-00BF0A  1  A9 00                LDA #$00
-00BF0C  1  85 25                STA IS_CLEAR
-00BF0E  1  85 26                STA ROTATE_NUM
-00BF10  1  85 29                STA IS_RESET
-00BF12  1               
-00BF12  1               
-00BF12  1               
-00BF12  1  60                   RTS
-00BF13  1               
-00BF13  1               
-00BF13  1               
-00BF13  1               INIT_DISPLAY:
-00BF13  1  A0 00                LDY #$00
-00BF15  1  A9 1F                LDA #$1F
-00BF17  1  91 20                STA (POINT_L),Y
-00BF19  1  A0 0C                LDY #$0C
-00BF1B  1  91 20                STA (POINT_L),Y
-00BF1D  1  A0 00                LDY #$00
-00BF1F  1  60                   RTS
-00BF20  1               
-00BF20  1               INIT_DISPLAY_0:
-00BF20  1  A0 00                LDY #$00
-00BF22  1  A9 1F                LDA #$1F
-00BF24  1  91 20                STA (POINT_L),Y
-00BF26  1  60                   RTS
-00BF27  1               
-00BF27  1               INIT_MAP:
-00BF27  1  A9 81                LDA #$81
-00BF29  1  8D 20 80             STA $8020
+00BEFB  1  20 88 BF             JSR CHECK_0_2
+00BEFE  1               
+00BEFE  1               
+00BEFE  1               ;===========================================
+00BEFE  1               
+00BEFE  1               
+00BEFE  1                       ;1
+00BEFE  1                D1:
+00BEFE  1  E8                   INX
+00BEFF  1  E6 20                INC POINT_L
+00BF01  1  46 22                LSR PIVOT
+00BF03  1  90 06                BCC D2
+00BF05  1  20 C4 BE             JSR SHAPE_DISPLAY
+00BF08  1               ;=============================
+00BF08  1               
+00BF08  1  20 88 BF             JSR CHECK_0_2
+00BF0B  1               
+00BF0B  1               
+00BF0B  1               ;===========================================
+00BF0B  1               
+00BF0B  1               
+00BF0B  1                       ;2
+00BF0B  1               D2:
+00BF0B  1  E8                   INX
+00BF0C  1  E6 20                INC POINT_L
+00BF0E  1  46 22                LSR PIVOT
+00BF10  1  90 06                BCC D3
+00BF12  1  20 C4 BE             JSR SHAPE_DISPLAY
+00BF15  1               ;===========================
+00BF15  1               
+00BF15  1  20 88 BF             JSR CHECK_0_2
+00BF18  1               
+00BF18  1               ;===========================================
+00BF18  1               
+00BF18  1               
+00BF18  1                       ;3
+00BF18  1  E8           D3:     INX
+00BF19  1  A5 20                LDA POINT_L
+00BF1B  1  38                   SEC
+00BF1C  1  E9 18                SBC #$18
+00BF1E  1  B0 02                BCS D3_1
+00BF20  1  C6 21                DEC POINT_H
+00BF22  1  85 20        D3_1:   STA POINT_L
+00BF24  1                       ;DEC POINT_L   ;-1
+00BF24  1  18                   CLC
+00BF25  1  46 22                LSR PIVOT
+00BF27  1  90 06                BCC DC
+00BF29  1  20 C4 BE             JSR SHAPE_DISPLAY
+00BF2C  1                       ;===============================
 00BF2C  1               
-00BF2C  1  A9 30                LDA #$30
-00BF2E  1  85 20                STA POINT_L
-00BF30  1  A9 71                LDA #$71
-00BF32  1  85 21                STA POINT_H
-00BF34  1               
-00BF34  1  A0 00                LDY #$00
-00BF36  1  A2 00                LDX #$00
-00BF38  1               INIT_0:
-00BF38  1  20 13 BF             JSR INIT_DISPLAY
-00BF3B  1  18                   CLC
-00BF3C  1  A5 20                LDA POINT_L
-00BF3E  1  69 18                ADC #$18
-00BF40  1  85 20                STA POINT_L
+00BF2C  1  20 A5 BF             JSR CHECK_3_7
+00BF2F  1               
+00BF2F  1               
+00BF2F  1               ;===========================================
+00BF2F  1               
+00BF2F  1               
+00BF2F  1  E8           DC:     INX
+00BF30  1  C6 20                DEC POINT_L
+00BF32  1  20 C4 BE             JSR SHAPE_DISPLAY
+00BF35  1                         ;===============================
+00BF35  1               
+00BF35  1  20 A5 BF             JSR CHECK_3_7
+00BF38  1               
+00BF38  1               
+00BF38  1               ;===========================================
+00BF38  1               
+00BF38  1               
+00BF38  1               
+00BF38  1  E8           D4:     INX
+00BF39  1  C6 20                DEC POINT_L
+00BF3B  1  46 22                LSR PIVOT
+00BF3D  1  90 06                BCC D5
+00BF3F  1  20 C4 BE              JSR SHAPE_DISPLAY
+00BF42  1                         ;===============================
 00BF42  1               
-00BF42  1               
-00BF42  1  A5 20                LDA POINT_L
-00BF44  1  C9 08                CMP #$08
-00BF46  1  D0 02                BNE INIT_1
-00BF48  1  E6 21                INC POINT_H
-00BF4A  1               
-00BF4A  1               INIT_1:
-00BF4A  1  E8                   INX
-00BF4B  1  8A                   TXA
-00BF4C  1  C9 14                CMP #$14
-00BF4E  1  D0 E8                BNE INIT_0
-00BF50  1               
-00BF50  1  A2 00                LDX #$00
-00BF52  1  A9 F7                LDA #$F7
-00BF54  1  85 20                STA POINT_L
-00BF56  1  A9 72                LDA #$72
-00BF58  1  85 21                STA POINT_H
-00BF5A  1               INIT_2:
-00BF5A  1  A5 20                LDA POINT_L
-00BF5C  1  69 01                ADC #$01
-00BF5E  1  85 20                STA POINT_L
-00BF60  1  20 20 BF             JSR INIT_DISPLAY_0
-00BF63  1  A5 20                LDA POINT_L
-00BF65  1  C9 FF                CMP #$FF
-00BF67  1  D0 02                BNE INIT_3
-00BF69  1  E6 21                INC POINT_H
-00BF6B  1                INIT_3:
-00BF6B  1  E8                   INX
-00BF6C  1  8A                   TXA
-00BF6D  1  C9 0C                CMP #$0C
-00BF6F  1  D0 E9                BNE INIT_2
-00BF71  1               
-00BF71  1  60                   RTS
-00BF72  1               
-00BF72  1               SHAPE_DISPLAY:
-00BF72  1  A0 00                LDY #$00
-00BF74  1  A5 25                LDA IS_CLEAR
-00BF76  1  C9 FF                CMP #$FF
-00BF78  1  D0 05                BNE SHAPE_1
-00BF7A  1  A9 00                LDA #$00
-00BF7C  1  4C 81 BF             JMP SHAPE_2
-00BF7F  1               SHAPE_1:
-00BF7F  1  A9 1F                LDA #$1F
-00BF81  1               SHAPE_2:
-00BF81  1  91 20                STA (POINT_L),Y
-00BF83  1  60                   RTS
-00BF84  1               
-00BF84  1               
-00BF84  1               
-00BF84  1               
-00BF84  1               
-00BF84  1               CORE_DISPLAY_LOOP:
-00BF84  1  A4 26                LDY ROTATE_NUM
-00BF86  1  A5 23                LDA NOW_POINT_L
-00BF88  1  85 20                STA POINT_L
-00BF8A  1  A5 24                LDA NOW_POINT_H
-00BF8C  1  85 21                STA POINT_H
-00BF8E  1  B1 27                LDA (PIVOT_VEC),Y
-00BF90  1  85 22                STA PIVOT
-00BF92  1               
-00BF92  1               
-00BF92  1                ;0
-00BF92  1  A5 20        D0:     LDA POINT_L
-00BF94  1  18                   CLC
-00BF95  1  69 18                ADC #$18
-00BF97  1  90 02                BCC D0_1
-00BF99  1  E6 21                INC POINT_H
-00BF9B  1  85 20        D0_1:   STA POINT_L
-00BF9D  1  C6 20                DEC POINT_L
-00BF9F  1  18                   CLC
-00BFA0  1  46 22                LSR PIVOT
-00BFA2  1  90 03                BCC D1
-00BFA4  1  20 72 BF          JSR SHAPE_DISPLAY
-00BFA7  1               
-00BFA7  1                       ;1
-00BFA7  1  E6 20         D1:    INC POINT_L
-00BFA9  1  46 22                LSR PIVOT
-00BFAB  1  90 03                BCC D2
-00BFAD  1  20 72 BF             JSR SHAPE_DISPLAY
-00BFB0  1               
-00BFB0  1                       ;2
-00BFB0  1  E6 20        D2:     INC POINT_L
-00BFB2  1  46 22                LSR PIVOT
-00BFB4  1  90 03                BCC D3
-00BFB6  1  20 72 BF             JSR SHAPE_DISPLAY
-00BFB9  1                       ;3
-00BFB9  1               D3:
-00BFB9  1  A5 20                LDA POINT_L
-00BFBB  1  38                   SEC
-00BFBC  1  E9 18                SBC #$18
-00BFBE  1  B0 02                BCS D3_1
-00BFC0  1  C6 21                DEC POINT_H
-00BFC2  1  85 20        D3_1:   STA POINT_L
-00BFC4  1                       ;DEC POINT_L   ;-1
-00BFC4  1  18                   CLC
-00BFC5  1  46 22                LSR PIVOT
-00BFC7  1  90 03                BCC DC
-00BFC9  1  20 72 BF             JSR SHAPE_DISPLAY
-00BFCC  1               
-00BFCC  1               DC:
-00BFCC  1  C6 20                DEC POINT_L
-00BFCE  1  20 72 BF             JSR SHAPE_DISPLAY
-00BFD1  1               
-00BFD1  1               D4:
-00BFD1  1  C6 20                DEC POINT_L
-00BFD3  1  46 22                LSR PIVOT
-00BFD5  1  90 03                BCC D5
-00BFD7  1  20 72 BF             JSR SHAPE_DISPLAY
-00BFDA  1               
-00BFDA  1               D5:
-00BFDA  1  A5 20                LDA POINT_L
-00BFDC  1  38                   SEC
-00BFDD  1  E9 18                SBC #$18
-00BFDF  1  B0 02                BCS D5_1
-00BFE1  1  C6 21                DEC POINT_H
-00BFE3  1  85 20        D5_1:   STA POINT_L
-00BFE5  1                       ;DEC POINT_L   ;-1
-00BFE5  1  18                   CLC
-00BFE6  1  46 22                LSR PIVOT
-00BFE8  1  90 03                BCC D6
-00BFEA  1  20 72 BF             JSR SHAPE_DISPLAY
-00BFED  1               
-00BFED  1               
-00BFED  1               D6:
-00BFED  1  E6 20                INC POINT_L
-00BFEF  1  46 22                LSR PIVOT
-00BFF1  1  90 03                BCC D7
-00BFF3  1  20 72 BF             JSR SHAPE_DISPLAY
-00BFF6  1               
-00BFF6  1               D7:
-00BFF6  1  E6 20                INC POINT_L
-00BFF8  1  46 22                LSR PIVOT
-00BFFA  1  90 03                BCC DEND
-00BFFC  1  20 72 BF             JSR SHAPE_DISPLAY
-00BFFF  1               
-00BFFF  1  60           DEND:   RTS
+00BF42  1  20 A5 BF             JSR CHECK_3_7
+00BF45  1               
+00BF45  1               
+00BF45  1               ;===========================================
+00BF45  1               
+00BF45  1               
+00BF45  1  E8           D5:     INX
+00BF46  1  A5 20                LDA POINT_L
+00BF48  1  38                   SEC
+00BF49  1  E9 18                SBC #$18
+00BF4B  1  B0 02                BCS D5_1
+00BF4D  1  C6 21                DEC POINT_H
+00BF4F  1  85 20        D5_1:   STA POINT_L
+00BF51  1                       ;DEC POINT_L   ;-1
+00BF51  1  18                   CLC
+00BF52  1  46 22                LSR PIVOT
+00BF54  1  90 06                BCC D6
+00BF56  1  20 C4 BE             JSR SHAPE_DISPLAY
+00BF59  1                         ;===============================
+00BF59  1               
+00BF59  1  20 A5 BF             JSR CHECK_3_7
+00BF5C  1               
+00BF5C  1               
+00BF5C  1               ;===========================================
+00BF5C  1               
+00BF5C  1               
+00BF5C  1               
+00BF5C  1  E8           D6:     INX
+00BF5D  1  E6 20                INC POINT_L
+00BF5F  1  46 22                LSR PIVOT
+00BF61  1  90 03                BCC D7
+00BF63  1  20 C4 BE              JSR SHAPE_DISPLAY
+00BF66  1                         ;===============================
+00BF66  1               
+00BF66  1                       ;JSR CHECK_3_7
+00BF66  1               
+00BF66  1               
+00BF66  1               ;===========================================
+00BF66  1               
+00BF66  1               
+00BF66  1  E8           D7:     INX
+00BF67  1  E6 20                INC POINT_L
+00BF69  1  46 22                LSR PIVOT
+00BF6B  1  90 06                BCC DEND
+00BF6D  1  20 C4 BE             JSR SHAPE_DISPLAY
+00BF70  1                         ;===============================
+00BF70  1               
+00BF70  1  20 A5 BF             JSR CHECK_3_7
+00BF73  1               
+00BF73  1               
+00BF73  1               ;===========================================
+00BF73  1               
+00BF73  1               
+00BF73  1               DEND:
+00BF73  1               
+00BF73  1  60                   RTS
+00BF74  1               
+00BF74  1               
+00BF74  1               
+00BF74  1               
+00BF74  1                GET_NEXT_ADDRESS:
+00BF74  1               
+00BF74  1               
+00BF74  1  A5 20                LDA POINT_L
+00BF76  1  85 33                STA NEXT_POINT_L
+00BF78  1  A5 21                LDA POINT_H
+00BF7A  1  85 34                STA NEXT_POINT_H
+00BF7C  1  A5 33                LDA NEXT_POINT_L
+00BF7E  1  18                   CLC
+00BF7F  1  69 18                ADC #$18
+00BF81  1  90 02                BCC ADDRESS_1
+00BF83  1  E6 34                INC NEXT_POINT_H
+00BF85  1               ADDRESS_1:
+00BF85  1  85 33                STA NEXT_POINT_L
+00BF87  1  60                   RTS
+00BF88  1               
+00BF88  1               
+00BF88  1               CHECK_0_2:
+00BF88  1               
+00BF88  1  20 74 BF             JSR GET_NEXT_ADDRESS
+00BF8B  1  A5 25                LDA IS_CLEAR
+00BF8D  1  C9 FF                CMP #$FF
+00BF8F  1  F0 13                BEQ  NO_STOP
+00BF91  1  A5 36                LDA IS_FIRST
+00BF93  1  C9 FF                CMP #$FF
+00BF95  1  F0 0D                BEQ  NO_STOP
+00BF97  1               
+00BF97  1  A0 00                LDY #$00
+00BF99  1  B1 33                LDA (NEXT_POINT_L),Y
+00BF9B  1  C9 1F                CMP #$1F
+00BF9D  1  F0 01                BEQ STOP
+00BF9F  1  60                   RTS
+00BFA0  1               STOP:
+00BFA0  1  A9 FF                LDA #$FF
+00BFA2  1  85 35                STA IS_STOP
+00BFA4  1  60           NO_STOP:       RTS
+00BFA5  1               
+00BFA5  1               
+00BFA5  1               CHECK_3_7:
+00BFA5  1               
+00BFA5  1               
+00BFA5  1  20 74 BF             JSR GET_NEXT_ADDRESS
+00BFA8  1  A5 25                LDA IS_CLEAR
+00BFAA  1  C9 FF                CMP #$FF
+00BFAC  1  F0 F6                BEQ  NO_STOP
+00BFAE  1               
+00BFAE  1  A5 36                LDA IS_FIRST
+00BFB0  1  C9 FF                CMP #$FF
+00BFB2  1  F0 03                BEQ SET_INNER
+00BFB4  1               
+00BFB4  1  4C CE BF             JMP CHECK_3_7_1
+00BFB7  1               
+00BFB7  1               SET_INNER:
+00BFB7  1  A0 00                LDY #$00
+00BFB9  1  B1 33                LDA (NEXT_POINT_L),Y
+00BFBB  1  C9 1F                CMP #$1F
+00BFBD  1  F0 03                BEQ SET_INNER_1
+00BFBF  1  4C C9 BF             JMP SET_INNER_2
+00BFC2  1               
+00BFC2  1               SET_INNER_1:
+00BFC2  1  A9 FF                LDA #$FF
+00BFC4  1  95 37                STA IS_INNER_BLK,X
+00BFC6  1  4C CD BF             JMP SET_INNER_3
+00BFC9  1               
+00BFC9  1               SET_INNER_2:
+00BFC9  1  A9 00                LDA #$00
+00BFCB  1  95 37                STA IS_INNER_BLK,X
+00BFCD  1                SET_INNER_3:
+00BFCD  1  60                   RTS
+00BFCE  1               
+00BFCE  1               CHECK_3_7_1:
+00BFCE  1  B5 37                LDA IS_INNER_BLK,X
+00BFD0  1  C9 FF                CMP #$FF
+00BFD2  1  F0 0F                BEQ SET_NO_STOP
+00BFD4  1               
+00BFD4  1  A0 00                LDY #$00
+00BFD6  1  B1 33                LDA (NEXT_POINT_L),Y
+00BFD8  1  C9 1F                CMP #$1F
+00BFDA  1  F0 03                BEQ SETP_0
+00BFDC  1  4C E3 BF             JMP SET_NO_STOP
+00BFDF  1               SETP_0:
+00BFDF  1  A9 FF                LDA #$FF
+00BFE1  1  85 35                STA IS_STOP
+00BFE3  1               
+00BFE3  1               SET_NO_STOP:
+00BFE3  1               
+00BFE3  1  60                   RTS
+00BFE4  1               
+00BFE4  1               
+00BFE4  1               
+00BFE4  1  18 42 18 42  ROTATE_PAD_0: .byte $18,$42,$18,$42
+00BFE8  1  38 C2 1C 43  ROTATE_PAD_1: .byte $38,$C2,$1C,$43
+00BFEC  1  98 46 19 62  ROTATE_PAD_2: .byte $98,$46,$19,$62
+00BFF0  1  0E 0E 0E 0E  ROTATE_PAD_3: .byte $0E,$0E,$0E,$0E
+00BFF4  1  D0 4C 0B 32  ROTATE_PAD_4: .byte $D0,$4C,$0B,$32
+00BFF8  1  58 4A 1A 52  ROTATE_PAD_5: .byte $58,$4A,$1A,$52
+00BFFC  1  68 8A 16 51  ROTATE_PAD_6: .byte $68,$8A,$16,$51
 00C000  1               
-00C000  1               
-00C000  1               CHECK_GAME_OVER:
 00C000  1               
